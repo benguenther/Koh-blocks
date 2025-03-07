@@ -87,7 +87,7 @@ def present_Koh_Blocks(x, y, type, scale = scale):
             stim.draw()
 
 
-for e in range(10):
-    present_Koh_Blocks(100, -200, "random")
+for e in range(25):
+    present_Koh_Blocks(random.randint(-200,200), random.randint(-200,200), "random")
     win.flip()
     event.waitKeys()
