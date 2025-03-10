@@ -35,7 +35,7 @@ elif condition == "far":
         fullscr=True,
         size=[3840, 2160],
         screen=1,
-        color=[+1] * 3,
+        color=[.5] * 3,
         units="pix"
     )
 else:
@@ -64,7 +64,7 @@ def visual_angle(deg, cond = condition):
     return round(pix)
 
 
-scale = visual_angle(2)
+scale = visual_angle(1)
 
 # function to present the KohBlock Pattern
 def present_Koh_Blocks(x, y, type, scale = scale):
@@ -87,7 +87,7 @@ def present_Koh_Blocks(x, y, type, scale = scale):
         if data == "random":
             design = [random.randint(1,6) for _ in range(9)]
         elif data == "fixed":
-            design = [1,2,3,3,3,3,5,4,1] # need to specify where it will be coming from
+            design = [4,5,6,2,2,2,3,3,3] # need to specify where it will be coming from
         return design
 
 
@@ -99,7 +99,7 @@ def present_Koh_Blocks(x, y, type, scale = scale):
         for col, var, x in zip(range(9), position_grid(x,y), blocks):
             block = KohBlock(
                 win = win,
-                line = "black",
+                line = "black  ",
                 scale = scale,
                 pos = (var[0], var[1]),
                 shape = x
