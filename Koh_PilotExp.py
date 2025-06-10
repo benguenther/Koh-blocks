@@ -8,12 +8,12 @@ from KohBlocks import KohBlock
 import math, random, sys
 
 
-condition = "test "
+condition = "test"
 
 # define the stimulus presentation window
 if condition == "test":
     win = visual.Window(
-        monitor="surface", #"hp_home_main", #"surface", #"testMonitor",  # "BlackLaptop",,
+        monitor="hp_home_main", #"hp_home_main", #"surface", #"testMonitor",  # "BlackLaptop",,
         fullscr=True,
         size=[1920, 1080],  # [1920, 1080],# [1280, 1024], #[2736, 1824], #[1600, 900],
         screen=0,
@@ -81,6 +81,22 @@ def present_Koh_Blocks(x, y, type, scale = scale):
                 [(h_center + scale),(v_center - scale)] # cube 9
             ]
         return positions
+    
+    # TODO integrate this into the position function
+    def spread_blocks(pos: list, adjust: int):
+        spreader = [
+            [(-adjust), (adjust)], # cube 1
+            [(0), (adjust)], # cube 2
+            [(adjust), (adjust)], # cube 3
+            [(-adjust), (0)], # cube 4
+            [(0), (0)], # cube 5
+            [(adjust), (0)], # cube 6
+            [(-adjust), (-adjust)], # cube 7
+            [(-0), (-adjust)], # cube 8
+            [(adjust), (-adjust)], # cube 9
+        ]   
+        return [[a+b for a, b in zip(*l)] for l in zip(pos, spreader)]
+
 
 
     def block_design(data):
@@ -94,9 +110,17 @@ def present_Koh_Blocks(x, y, type, scale = scale):
     blocks = block_design(type)
     shape_matrix = []
 
+    type = "spread"
+
     for row in range(1):
         row_list = []
-        for col, var, x in zip(range(9), position_grid(x,y), blocks):
+        # TODO   integrate this into the position functioon
+        if type == "connected":
+            stim_positions = position_grid(x,y)
+        elif type == "spread":
+            stim_positions = spread_blocks(position_grid(x,y), 20)
+        
+        for var, x in zip(stim_positions, blocks): # for col, var, x in zip(range(9), stim_positions, blocks): -- old version that worked but col not used.
             block = KohBlock(
                 win = win,
                 line = "black",
