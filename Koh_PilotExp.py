@@ -8,16 +8,16 @@ from KohBlocks import KohBlock
 import math, random, sys
 
 
-condition = "far"
+condition = "test "
 
 # define the stimulus presentation window
 if condition == "test":
     win = visual.Window(
-        monitor="hp_home_main", #"surface", #"testMonitor",  # "BlackLaptop",,
+        monitor="surface", #"hp_home_main", #"surface", #"testMonitor",  # "BlackLaptop",,
         fullscr=True,
         size=[1920, 1080],  # [1920, 1080],# [1280, 1024], #[2736, 1824], #[1600, 900],
         screen=0,
-        color=[+1] * 3,
+        color=[.5] * 3,
         units="pix"
     )
 elif condition == "near":
@@ -99,7 +99,7 @@ def present_Koh_Blocks(x, y, type, scale = scale):
         for col, var, x in zip(range(9), position_grid(x,y), blocks):
             block = KohBlock(
                 win = win,
-                line = "black  ",
+                line = "black",
                 scale = scale,
                 pos = (var[0], var[1]),
                 shape = x
