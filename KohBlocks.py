@@ -88,10 +88,6 @@ class KohGrid:
         self.pattern = self.block_design()
         self.original_pattern = self.pattern # save original pattern
 
-        """
-        Need to include/modify a method to set
-        """
-
 
     def position_grid(self):
         self.positions = [
