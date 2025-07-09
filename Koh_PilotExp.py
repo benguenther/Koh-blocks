@@ -4,7 +4,7 @@
 # Python version: 3.10.11
 
 from psychopy import visual, event
-from KohBlocks import KohBlock
+from KohBlocks import KohGrid
 import math, random, sys
 
 
@@ -42,7 +42,6 @@ else:
     sys.exit("error in condition settings")
 
 
-
 # function to convert stimulus dimensions from visual angle to pixels
 def visual_angle(deg, cond = condition):
     if cond == "test":
@@ -66,77 +65,19 @@ def visual_angle(deg, cond = condition):
 
 scale = visual_angle(1)
 
-# function to present the KohBlock Pattern
-def present_Koh_Blocks(x, y, type, scale = scale):
-    def position_grid(h_center, v_center, scale = scale):
-        positions = [
-                [(h_center - scale), (v_center + scale)], # cube 1
-                [(h_center),(v_center + scale)], # cube 2
-                [(h_center + scale),(v_center + scale)], # cube 3
-                [(h_center - scale),(v_center)], # cube 4
-                [(h_center),(v_center)], # cube 5
-                [(h_center + scale),(v_center)], # cube 6
-                [(h_center - scale),(v_center - scale)], # cube 7
-                [(h_center),(v_center - scale)], # cube 8
-                [(h_center + scale),(v_center - scale)] # cube 9
-            ]
-        return positions
-    
-    # TODO integrate this into the position function
-    def spread_blocks(pos: list, adjust: int):
-        spreader = [
-            [(-adjust), (adjust)], # cube 1
-            [(0), (adjust)], # cube 2
-            [(adjust), (adjust)], # cube 3
-            [(-adjust), (0)], # cube 4
-            [(0), (0)], # cube 5
-            [(adjust), (0)], # cube 6
-            [(-adjust), (-adjust)], # cube 7
-            [(-0), (-adjust)], # cube 8
-            [(adjust), (-adjust)], # cube 9
-        ]   
-        return [[a+b for a, b in zip(*l)] for l in zip(pos, spreader)]
 
-
-
-    def block_design(data):
-        if data == "random":
-            design = [random.randint(1,6) for _ in range(9)]
-        elif data == "fixed":
-            design = [4,5,6,2,2,2,3,3,3] # need to specify where it will be coming from
-        return design
-
-
-    blocks = block_design(type)
-    shape_matrix = []
-
-    type = "spread"
-
-    for row in range(1):
-        row_list = []
-        # TODO   integrate this into the position functioon
-        if type == "connected":
-            stim_positions = position_grid(x,y)
-        elif type == "spread":
-            stim_positions = spread_blocks(position_grid(x,y), 20)
-        
-        for var, x in zip(stim_positions, blocks): # for col, var, x in zip(range(9), stim_positions, blocks): -- old version that worked but col not used.
-            block = KohBlock(
-                win = win,
-                line = "black",
-                scale = scale,
-                pos = (var[0], var[1]),
-                shape = x
-            )       
-            row_list.append(block)
-        shape_matrix.append(row_list)
-
-    for row in shape_matrix:
-        for stim in row:
-            stim.draw()
-
-
-for e in range(25):
-    present_Koh_Blocks(random.randint(-200,200), random.randint(-200,200), "random")
+for e in range(1):
+    stim = KohGrid(0,0, scale, "fixed", win)
+    stim.spread_blocks(10)
+    stim.display_grid()
     win.flip()
     event.waitKeys()
+    
+    stim2 = stim
+    stim2.move_position_grid(200, 200)
+    stim2.rotate_grid(1)
+    stim.display_grid()
+    stim2.display_grid()
+    win.flip()
+    event.waitKeys()
+
