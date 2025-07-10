@@ -83,6 +83,10 @@ for e in range(2):
     win.flip()
     event.waitKeys()
 
+"""
+consider handling position of the target by moving the h/v coordinates into a tuple.  
+list of tuples randomized and then iterated through to determine stim location
+"""
     
     
 

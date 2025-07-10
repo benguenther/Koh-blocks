@@ -160,7 +160,8 @@ class KohGrid:
             for i in range(0, len(temp), 3):
                 design.append(temp[i: i + 3])
         elif self.block_type == "fixed":
-            design = [[5,5,5],[2,2,2],[6,6,6]] # need to specify where it will be coming from  [[1,2,3],[4,5,6],[6,6,6]]
+            design = [[5,5,5],[2,2,2],[6,6,6]] # used for testing
+            # pattern is manually specified during initialiation by passing a matrix into the pat var
         return design
 
     
