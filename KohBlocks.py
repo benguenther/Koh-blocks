@@ -75,7 +75,7 @@ class KohBlock:
 
 class KohGrid:
     
-    def __init__(self, h_center: int, v_center: int, scale: int, block_type: str, win):#spread: int, 
+    def __init__(self, h_center: int, v_center: int, scale: int,  win, block_type = "", pat = None):#spread: int, 
         self.h_center = h_center
         self.v_center = v_center
         self.scale = scale
@@ -85,7 +85,10 @@ class KohGrid:
         self.positions = self.position_grid()
         self.original_positions = self.positions # save the original just in case
 
-        self.pattern = self.block_design()
+        if pat is None:
+            self.pattern = self.block_design()
+        else:
+            self.pattern = pat
         self.original_pattern = self.pattern # save original pattern
 
 
@@ -211,3 +214,7 @@ class KohGrid:
     def reset_grid(self):
         self.pattern = self.original_pattern
         self.positions = self.original_positions
+
+
+    def log_design(self):
+        return self.pattern
