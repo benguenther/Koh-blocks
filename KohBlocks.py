@@ -72,6 +72,10 @@ class KohBlock:
             self.square.fillColor = "white"
             self.square.draw()
 
+    
+    def __repr__(self):
+        return f"KohBlock({self.win}, {self.scale}, {self.line}, {self.pos}, {self.shape})"
+
 
 class KohGrid:
     
@@ -219,3 +223,98 @@ class KohGrid:
 
     def log_design(self):
         return self.pattern
+    
+    """
+    def __repr__(self):
+        return f"KohGrid({self.pattern})"
+    """
+
+class KohStimuli(KohGrid):
+    
+    def __init__(self):
+        self._stimuli = {
+            "test": None,
+            "target": None,
+            "distractor_1": None,
+            "distractor_2": None
+        }
+
+    
+    # needs to read infomation from somewhere and then create KohGrid objects
+    def add_stimulus(self, name: str, h_center: int, v_center: int, scale: int,  win, block_type):
+        if name == "target":
+            try:
+                pattern = self._stimuli["test"].log_design()
+            except:
+                raise ValueError("error defining target stimulus")
+        else:
+            pattern = None
+        
+        stimulus = KohGrid(h_center,v_center, scale, win, block_type, pattern)
+        self._stimuli[name] = stimulus
+        
+
+    def __iter__(self):
+        return iter(self._stimuli.keys())
+    
+    
+    def __getitem__(self, key):
+        return self._stimuli[key]
+    
+    
+    def __setitem__(self, key, value):
+        self._stimuli[key] = value
+
+    
+    def keys(self):
+        return self._stimuli.keys()
+    
+    
+    def values(self):
+        return self._stimuli.values()
+    
+    
+    def items(self):
+        return self._stimuli.items()
+    
+
+    def record_stimulus(self):
+        return {key: value.log_design() for key, value in self._stimuli.items()}
+        
+
+class KohTest:
+    pass
+# consider a class for a full stimulus screen and then a trial class
+
+
+if __name__ in "__main__":
+    from psychopy import event
+    
+    win = visual.Window(
+        monitor="hp_home_main", #"hp_home_main", #"surface", #"testMonitor",  # "BlackLaptop",,
+        fullscr=True,
+        size=[1920, 1080],  # [1920, 1080],# [1280, 1024], #[2736, 1824], #[1600, 900],
+        screen=0,
+        color=[.5] * 3,
+        units="pix"
+    )
+    
+    screen = KohStimuli()
+    screen.add_stimulus("test", 0,0, 58, win, "random")
+    screen.add_stimulus("target", 300,0, 58, win, "")
+    screen.add_stimulus("distractor_1", 300,300, 58, win, "random")
+    screen.add_stimulus("distractor_2", 300,-300, 58, win, "random")
+    print(screen.record_stimulus())
+
+    for key, value in screen.items():
+        if key in ["target", "distractor_1", "distractor_2"]:
+            value.spread_blocks(20)
+            if key == "target":
+                value.rotate_grid(1)
+
+        value.display_grid()
+
+
+    win.flip()
+    event.waitKeys()
+

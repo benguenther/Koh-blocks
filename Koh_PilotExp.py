@@ -63,18 +63,18 @@ def visual_angle(deg, cond = condition):
     return round(pix)
 
 
-scale = visual_angle(1)
-
+scale = visual_angle(1.5)
+print(scale)
 
 for e in range(2):
     stim = KohGrid(0,0, scale, win, "random")
     target = stim.log_design()  
-    stim2 = KohGrid(200,200, scale, win, "random")
-    stim3 = KohGrid(200, 0, scale, win, pat = target)
-    stim4 = KohGrid(200, -200, scale, win, "random")
-    stim2.spread_blocks(10)
-    stim3.spread_blocks(10)
-    stim4.spread_blocks(10)
+    stim2 = KohGrid(300,300, scale, win, "random")
+    stim3 = KohGrid(300, 0, scale, win, pat = target)
+    stim4 = KohGrid(300, -300, scale, win, "random")
+    stim2.spread_blocks(20)
+    stim3.spread_blocks(20)
+    stim4.spread_blocks(20)
     stim3.rotate_grid(1)
     stim2.display_grid()
     stim3.display_grid()
