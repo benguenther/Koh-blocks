@@ -4,7 +4,7 @@
 # Python version: 3.10.11
 
 from psychopy import visual, event
-from KohBlocks import KohGrid
+from KohBlocks import KohStimuli
 import math, random, sys
 
 
@@ -64,30 +64,84 @@ def visual_angle(deg, cond = condition):
 
 
 scale = visual_angle(1.5)
-print(scale)
 
-for e in range(2):
-    stim = KohGrid(0,0, scale, win, "random")
-    target = stim.log_design()  
-    stim2 = KohGrid(300,300, scale, win, "random")
-    stim3 = KohGrid(300, 0, scale, win, pat = target)
-    stim4 = KohGrid(300, -300, scale, win, "random")
-    stim2.spread_blocks(20)
-    stim3.spread_blocks(20)
-    stim4.spread_blocks(20)
-    stim3.rotate_grid(1)
-    stim2.display_grid()
-    stim3.display_grid()
-    stim4.display_grid()
-    stim.display_grid()
+def generate_condition_list():
+    style = ["solid", "spread"]
+    outline = ["black", None]
+    position = [1, 2, 3]
+    trial_list = []
+
+    for s in style:
+        for o in outline:
+            for p in position * 2:
+                trial_list.append((s,o,p))
+
+    condition_list = []
+
+    for trial in trial_list:
+        test_pattern = {
+            "name": "test", 
+            "position": 0, 
+            "size": scale,
+            "design": "random",
+            "line_color": trial[1],
+            "style": trial[0]
+        }
+        target_pattern = {
+            "name": "target", 
+            "position": trial[2], 
+            "size": scale,
+            "design": "random",
+            "line_color": trial[1],
+            "style": trial[0]
+        }
+        positions = [1, 2, 3]
+        positions.remove(trial[2])
+        distractor_1 = {
+            "name": "distractor_1", 
+            "position": positions.pop(), 
+            "size": scale,
+            "design": "random",
+            "line_color": trial[1],
+            "style": trial[0]
+        }
+        distractor_2 = {
+            "name": "distractor_2", 
+            "position": positions.pop(), 
+            "size": scale,
+            "design": "random",
+            "line_color": trial[1],
+            "style": trial[0]
+        }
+        condition_list.append([test_pattern, target_pattern, distractor_1, distractor_2])
+    return condition_list
+
+trials = generate_condition_list()
+random.shuffle(trials)
+
+
+for trial in trials:
+    screen = KohStimuli()
+    screen.load_stimulus_conditions(trial, win)
+
+    if trial[0]["style"] == "spread":
+        spread_value = 10
+    else:
+        spread_value = 0
+    
+    rotation_value = random.choice([0, 1, 2, 3]) 
+    
+    # TODO add rotation into the trial/condition dictionary. currently randomized
+    for key, value in screen.items():
+        if key in ["target", "distractor_1", "distractor_2"]:
+            value.spread_blocks(spread_value)
+            if key == "target" and rotation_value != 0:
+                value.rotate_grid(rotation_value)
+
+        value.display_grid()
+    
+    print(screen.record_stimulus())
+
     win.flip()
     event.waitKeys()
-
-"""
-consider handling position of the target by moving the h/v coordinates into a tuple.  
-list of tuples randomized and then iterated through to determine stim location
-"""
-    
-    
-
 

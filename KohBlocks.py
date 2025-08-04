@@ -79,12 +79,13 @@ class KohBlock:
 
 class KohGrid:
     
-    def __init__(self, h_center: int, v_center: int, scale: int,  win, block_type = "", pat = None):#spread: int, 
-        self.h_center = h_center
-        self.v_center = v_center
+    def __init__(self, position: tuple, scale: int,  win, block_type = "", pat = None, line_color = "black"):#spread: int, 
+        self.h_center = position[0]#h_center
+        self.v_center = position[1]#v_center
         self.scale = scale
         self.block_type = block_type # specifies if blocks are random or fixed
         self.win = win
+        self.line_color = line_color
         
         self.positions = self.position_grid()
         self.original_positions = self.positions # save the original just in case
@@ -177,7 +178,7 @@ class KohGrid:
             for var, x in zip(row1, row2): 
                 block = KohBlock(
                     win = self.win,
-                    line = "black",
+                    line = self.line_color,
                     scale = self.scale,
                     pos = (var[0], var[1]),
                     shape = x
@@ -224,12 +225,8 @@ class KohGrid:
     def log_design(self):
         return self.pattern
     
-    """
-    def __repr__(self):
-        return f"KohGrid({self.pattern})"
-    """
 
-class KohStimuli(KohGrid):
+class KohStimuli():
     
     def __init__(self):
         self._stimuli = {
@@ -239,20 +236,58 @@ class KohStimuli(KohGrid):
             "distractor_2": None
         }
 
-    
-    # needs to read infomation from somewhere and then create KohGrid objects
-    def add_stimulus(self, name: str, h_center: int, v_center: int, scale: int,  win, block_type):
-        if name == "target":
+    # method to convert a int id for locations into a tuple of x, y coordinates
+    def __set_positions(self, location: int):
+        if location == 0: # the test location at 0, 0
+            return 0, 150
+        if location == 1:
+            return -300, -150
+        if location == 2:
+            return 0, -150
+        if location == 3:
+            return 300, -150
+
+    def add_stimulus(self, name: str, location: int, scale: int,  win, block_type, line_color):
+        # method returns a tuple with x, y coords for the koh grid based on a number for each location
+        position = self.__set_positions(location)
+        # target reads the test pattern from the stimulus list
+        # TODO define stimulus list for test pattern 
+        if name == "test":
+            pattern = None # temporary
+        # target replicates and possibly rotates the test pattern
+        elif name == "target":
             try:
+                # reads pattern from the test stimulus and set's it to match
                 pattern = self._stimuli["test"].log_design()
             except:
                 raise ValueError("error defining target stimulus")
+        # setting "pattern" to none for random block pattern designation
         else:
             pattern = None
-        
-        stimulus = KohGrid(h_center,v_center, scale, win, block_type, pattern)
+        # calls the KohGrid class to create a Koh pattern
+        stimulus = KohGrid(position, scale, win, block_type, pattern, line_color)
+        # before adding the distractor to the overall display, first check to ensure it is different
+        if "distractor" in name:
+            while True:
+                if stimulus.pattern not in [self._stimuli["test"].pattern, self._stimuli["target"].pattern]:
+                    break 
+                else:
+                    stimulus = KohGrid(position, scale, win, block_type, pattern, line_color)
+        # add the stimulus to the dict holding the 4 on-screen stimuli
         self._stimuli[name] = stimulus
-        
+
+    
+    def load_stimulus_conditions(self, stimuli: list, window: visual.Window):        
+        for stim in stimuli:
+            self.add_stimulus(
+                stim["name"], 
+                stim["position"], 
+                stim["size"],
+                window,
+                stim["design"],
+                stim["line_color"]
+                )
+
 
     def __iter__(self):
         return iter(self._stimuli.keys())
@@ -280,11 +315,10 @@ class KohStimuli(KohGrid):
 
     def record_stimulus(self):
         return {key: value.log_design() for key, value in self._stimuli.items()}
-        
 
-class KohTest:
+
+class KohTrial:
     pass
-# consider a class for a full stimulus screen and then a trial class
 
 
 if __name__ in "__main__":
@@ -299,16 +333,23 @@ if __name__ in "__main__":
         units="pix"
     )
     
+
+    cond1 = [     
+        {"name": "test", "position": 0, "size": 58, "design": "random", "line_color": None},
+        {"name": "target", "position": 1, "size": 58, "design": "", "line_color": None},
+        {"name": "distractor_1", "position": 2, "size": 58, "design": "random", "line_color": None},
+        {"name": "distractor_2", "position": 3, "size": 58, "design": "random", "line_color": None}
+    ]
+
     screen = KohStimuli()
-    screen.add_stimulus("test", 0,0, 58, win, "random")
-    screen.add_stimulus("target", 300,0, 58, win, "")
-    screen.add_stimulus("distractor_1", 300,300, 58, win, "random")
-    screen.add_stimulus("distractor_2", 300,-300, 58, win, "random")
+    screen.load_stimulus_conditions(cond1, win)
+
     print(screen.record_stimulus())
 
+    # TODO add spread and rotation into the trial/condition dictionary.  That can be called here
     for key, value in screen.items():
         if key in ["target", "distractor_1", "distractor_2"]:
-            value.spread_blocks(20)
+            value.spread_blocks(0)
             if key == "target":
                 value.rotate_grid(1)
 
@@ -318,3 +359,5 @@ if __name__ in "__main__":
     win.flip()
     event.waitKeys()
 
+
+    
