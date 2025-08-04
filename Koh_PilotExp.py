@@ -65,20 +65,20 @@ def visual_angle(deg, cond = condition):
 
 scale = visual_angle(1.5)
 
-def generate_condition_list():
+def generate_trial_list():
     style = ["solid", "spread"]
     outline = ["black", None]
     position = [1, 2, 3]
-    trial_list = []
+    condition_list = []
 
     for s in style:
         for o in outline:
             for p in position * 2:
-                trial_list.append((s,o,p))
+                condition_list.append((s,o,p))
 
-    condition_list = []
+    trial_list = []
 
-    for trial in trial_list:
+    for trial in condition_list:
         test_pattern = {
             "name": "test", 
             "position": 0, 
@@ -113,11 +113,12 @@ def generate_condition_list():
             "line_color": trial[1],
             "style": trial[0]
         }
-        condition_list.append([test_pattern, target_pattern, distractor_1, distractor_2])
-    return condition_list
+        trial_list.append([test_pattern, target_pattern, distractor_1, distractor_2])
 
-trials = generate_condition_list()
-random.shuffle(trials)
+    random.shuffle(trial_list) 
+    return trial_list
+
+trials = generate_trial_list()
 
 
 for trial in trials:
