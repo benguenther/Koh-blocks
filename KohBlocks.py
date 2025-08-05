@@ -4,7 +4,7 @@
 # Python version: 3.10.11
 
 from psychopy import visual
-import random
+import random, math
 import numpy as np
 
 class KohBlock:
@@ -317,8 +317,140 @@ class KohStimuli():
         return {key: value.log_design() for key, value in self._stimuli.items()}
 
 
-class KohTrial:
-    pass
+class KohExperiment():
+    
+    def __init__(self, deg: int, condition: str, window: visual.Window):
+        self.__condition = condition
+        self.__window = window
+        self.__deg = deg
+        self.__set_scale()
+        self.__add_koh_trials()
+        
+
+    def generate_trial_list(self):
+        style = ["solid", "spread"]
+        outline = ["black", None]
+        position = [1, 2, 3]
+        condition_list = []
+
+        for s in style:
+            for o in outline:
+                for p in position * 2:
+                    condition_list.append((s,o,p))
+
+        trial_list = []
+
+        for trial in condition_list:
+            test_pattern = {
+                "name": "test", 
+                "position": 0, 
+                "size":  self.__scale,
+                "design": "random",
+                "line_color": trial[1],
+                "style": trial[0]
+            }
+            target_pattern = {
+                "name": "target", 
+                "position": trial[2], 
+                "size":  self.__scale,
+                "design": "random",
+                "line_color": trial[1],
+                "style": trial[0]
+            }
+            positions = [1, 2, 3]
+            positions.remove(trial[2])
+            distractor_1 = {
+                "name": "distractor_1", 
+                "position": positions.pop(), 
+                "size":  self.__scale,
+                "design": "random",
+                "line_color": trial[1],
+                "style": trial[0]
+            }
+            distractor_2 = {
+                "name": "distractor_2", 
+                "position": positions.pop(), 
+                "size":  self.__scale,
+                "design": "random",
+                "line_color": trial[1],
+                "style": trial[0]
+            }
+            trial_list.append([test_pattern, target_pattern, distractor_1, distractor_2])
+
+        random.shuffle(trial_list) 
+        return trial_list
+    
+
+    def __add_koh_trials(self):
+        self.__trials = {}
+        index = 0
+        for trial in self.generate_trial_list():
+            index += 1
+            screen = KohStimuli()
+            screen.load_stimulus_conditions(trial, self.__window)
+
+            if trial[0]["style"] == "spread":
+                spread_value = 10
+            else:
+                spread_value = 0
+            
+            rotation_value = random.choice([0, 1, 2, 3])
+
+            for key, value in screen.items():
+                if key in ["target", "distractor_1", "distractor_2"]:
+                    value.spread_blocks(spread_value)
+                    if key == "target" and rotation_value != 0:
+                        value.rotate_grid(rotation_value)
+
+            self.__trials[f"{self.__condition}: {index}"] = screen
+
+
+    def __set_scale(self):
+        if self.__condition == "test":
+            screen_pix = [1920, 1080]
+            screen_mm = [529, 297]
+            distance = 610
+        elif self.__condition == "far":
+            screen_pix = [3840, 2160]
+            screen_mm = [1805, 1015]
+            distance = 5385
+        elif self.__condition == "near":
+            screen_pix = [3840, 2160]
+            screen_mm = [597, 335] 
+            distance = 400  
+        # assumes pixels are squaare
+        pix_mm = (screen_pix[0]/screen_mm[0])
+        pix = (2 * distance) * math.tan((self.__deg * (math.pi/180))/2) * pix_mm
+        # returns the number of pixels producing an object of the entered visual angle
+        self.__scale = round(pix)
+
+
+    def __iter__(self):
+        return iter(self.__trials.keys())
+    
+    
+    def __getitem__(self, key):
+        return self.__trials[key]
+    
+    
+    def __setitem__(self, key, value):
+        self.__trials[key] = value
+
+    
+    def keys(self):
+        return self.__trials.keys()
+    
+    
+    def values(self):
+        return self.__trials.values()
+    
+    
+    def items(self):
+        return self.__trials.items()
+
+
+    def condition_logging(self):
+        pass
 
 
 if __name__ in "__main__":
@@ -333,31 +465,14 @@ if __name__ in "__main__":
         units="pix"
     )
     
+    test = KohExperiment(1.5, "test")
+    for key, value in test.items():
+        for x, y in value.items():
+            y.display_grid()
+        print(f"{key}: {value.record_stimulus()}")
+        win.flip()
+        event.waitKeys()
 
-    cond1 = [     
-        {"name": "test", "position": 0, "size": 58, "design": "random", "line_color": None},
-        {"name": "target", "position": 1, "size": 58, "design": "", "line_color": None},
-        {"name": "distractor_1", "position": 2, "size": 58, "design": "random", "line_color": None},
-        {"name": "distractor_2", "position": 3, "size": 58, "design": "random", "line_color": None}
-    ]
-
-    screen = KohStimuli()
-    screen.load_stimulus_conditions(cond1, win)
-
-    print(screen.record_stimulus())
-
-    # TODO add spread and rotation into the trial/condition dictionary.  That can be called here
-    for key, value in screen.items():
-        if key in ["target", "distractor_1", "distractor_2"]:
-            value.spread_blocks(0)
-            if key == "target":
-                value.rotate_grid(1)
-
-        value.display_grid()
-
-
-    win.flip()
-    event.waitKeys()
 
 
     

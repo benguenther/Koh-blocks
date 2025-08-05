@@ -3,146 +3,224 @@
 # Psychopy version: 2024.2.1post4
 # Python version: 3.10.11
 
-from psychopy import visual, event
-from KohBlocks import KohStimuli
-import math, random, sys
+from psychopy import visual, event, gui, clock
+from KohBlocks import KohExperiment
+import sys, os, math, time
 
-
-condition = "test"
-
-# define the stimulus presentation window
-if condition == "test":
+# if/else block to simplify testing/development by hardcoding experiment parameters
+if True:
+    subj_id = "0001"
+    condition = "test"
     win = visual.Window(
-        monitor="hp_home_main", #"hp_home_main", #"surface", #"testMonitor",  # "BlackLaptop",,
+        monitor="hp_home_main",
         fullscr=True,
-        size=[1920, 1080],  # [1920, 1080],# [1280, 1024], #[2736, 1824], #[1600, 900],
+        size=[1920, 1080],
         screen=0,
         color=[.5] * 3,
         units="pix"
     )
-elif condition == "near":
-    win = visual.Window(
-        monitor="LG",
-        fullscr=True,
-        size=[3840, 2160],
-        screen=1,
-        color=[+1] * 3,
-        units="pix"
-    )
-elif condition == "far":
-    win = visual.Window(
-        monitor="BigTV",
-        fullscr=True,
-        size=[3840, 2160],
-        screen=1,
-        color=[.5] * 3,
-        units="pix"
-    )
+    data_path = f"KohBlocks_{subj_id}_test.csv"
 else:
-    sys.exit("error in condition settings")
+    # setup a gui interface to specify experiment parameters
+    exp_param = gui.Dlg()
+    exp_param.addField("id: ")
+    exp_param.addField("condition: ", choices=["near", "far"])
 
+    # log and display the gui for user input
+    param_data = exp_param.show()
 
-# function to convert stimulus dimensions from visual angle to pixels
+    # assign subject id variable and condition number based on gui input
+    subj_id = param_data["id: "]
+    condition = param_data["condition: "]
+    data_path = f"KohBlocks_{subj_id}.csv"
+
+        # define the stimulus presentation window
+    if condition == "near":
+        win = visual.Window(
+            monitor="LG",
+            fullscr=True,
+            size=[3840, 2160],
+            screen=1,
+            color=[+1] * 3,
+            units="pix"
+        )
+    elif condition == "far":
+        win = visual.Window(
+            monitor="BigTV",
+            fullscr=True,
+            size=[3840, 2160],
+            screen=1,
+            color=[.5] * 3,
+            units="pix"
+        )
+    else:
+        sys.exit("error in condition settings")
+
+# empty list to hold data
+exp_data = []
+
+# add header to data if this is the first condition/block of trials
+if not os.path.exists(data_path):
+    # define the column headings for the data file
+    data_header = [
+        "ID", # subject ID
+        "condition",  # record the condition
+        "trial",  # Counter for the Trial Number
+        "target_location", # int 1-3 defining target position 1: left, 2: center, 3: right
+        "target_rotation", # int 0-3 defomomg target rotation (clockwise) 0: 0deg, 1: 90deg, 2: 180deg, 3: 270deg
+        "response",
+        "accuarcy"
+        "rt", 
+    ]
+    # attach headings to the data
+    exp_data.append(data_header)
+
+# helper function for setting text size
 def visual_angle(deg, cond = condition):
     if cond == "test":
         screen_pix = [1920, 1080]
         screen_mm = [529, 297]
-        distance = 610
+        distance = 1000
     elif cond == "far":
         screen_pix = [3840, 2160]
         screen_mm = [1805, 1015]
-        distance = 5385
+        distance = 5385 
     elif cond == "near":
         screen_pix = [3840, 2160]
         screen_mm = [597, 335] 
-        distance = 400  
-    # assumes pixels are squaare
+        distance = 400
+    
+    # assumes that pixels are square
     pix_mm = (screen_pix[0]/screen_mm[0])
     pix = (2 * distance) * math.tan((deg * (math.pi/180))/2) * pix_mm
-    # returns the number of pixels producing an object of the entered visual angle
     return round(pix)
 
+####################################
+###### set up data collection ######
+####################################
 
-scale = visual_angle(1.5)
+response_box_1 = visual.Rect(
+    win = win,
+    units = "pix",
+    size = visual_angle(3.1),
+    fillColor = [1] * 3,
+    opacity = 0.0,
+    pos = (-300, -150)
+)
 
-def generate_trial_list():
-    style = ["solid", "spread"]
-    outline = ["black", None]
-    position = [1, 2, 3]
-    condition_list = []
+response_box_2 = visual.Rect(
+    win = win,
+    units = "pix",
+    size = visual_angle(3.1),
+    fillColor = [1] * 3,
+    opacity = 0.0,
+    pos = (0, -150)
+)
 
-    for s in style:
-        for o in outline:
-            for p in position * 2:
-                condition_list.append((s,o,p))
+response_box_3 = visual.Rect(
+    win = win,
+    units = "pix",
+    size = visual_angle(3.1),
+    fillColor = [1] * 3,
+    opacity = 0.0,
+    pos = (300, -150)
+)
 
-    trial_list = []
+response_boxes = [response_box_1, response_box_2, response_box_3]
 
-    for trial in condition_list:
-        test_pattern = {
-            "name": "test", 
-            "position": 0, 
-            "size": scale,
-            "design": "random",
-            "line_color": trial[1],
-            "style": trial[0]
-        }
-        target_pattern = {
-            "name": "target", 
-            "position": trial[2], 
-            "size": scale,
-            "design": "random",
-            "line_color": trial[1],
-            "style": trial[0]
-        }
-        positions = [1, 2, 3]
-        positions.remove(trial[2])
-        distractor_1 = {
-            "name": "distractor_1", 
-            "position": positions.pop(), 
-            "size": scale,
-            "design": "random",
-            "line_color": trial[1],
-            "style": trial[0]
-        }
-        distractor_2 = {
-            "name": "distractor_2", 
-            "position": positions.pop(), 
-            "size": scale,
-            "design": "random",
-            "line_color": trial[1],
-            "style": trial[0]
-        }
-        trial_list.append([test_pattern, target_pattern, distractor_1, distractor_2])
+mouse = event.Mouse(
+    win = win,
+    visible = True,   
+)
+mouse.clickableStim = response_boxes
 
-    random.shuffle(trial_list) 
-    return trial_list
-
-trials = generate_trial_list()
-
-
-for trial in trials:
-    screen = KohStimuli()
-    screen.load_stimulus_conditions(trial, win)
-
-    if trial[0]["style"] == "spread":
-        spread_value = 10
-    else:
-        spread_value = 0
-    
-    rotation_value = random.choice([0, 1, 2, 3]) 
-    
-    # TODO add rotation into the trial/condition dictionary. currently randomized
-    for key, value in screen.items():
-        if key in ["target", "distractor_1", "distractor_2"]:
-            value.spread_blocks(spread_value)
-            if key == "target" and rotation_value != 0:
-                value.rotate_grid(rotation_value)
-
-        value.display_grid()
-    
-    print(screen.record_stimulus())
-
+def collect_mouse_response(locations = response_boxes):
+    for box in locations:
+        box.draw()
     win.flip()
-    event.waitKeys()
+    clicked = False
+    start_time = clock.getTime()
+    while not clicked:
+        # check the list of shapes
+        for n, box in enumerate(locations):
+            if mouse.isPressedIn(box):
+                clicked = True
+                response = (n + 1) 
+                end_time = clock.getTime()
+                break # exit this loop
+            else: # this runs once at the completion of the for loop
+            # breathe for 1 ms
+                time.sleep(0.001)
+    rt = round((end_time - start_time) * 1000)
+    return (response, rt)
 
+
+
+##########################
+###### Instructions ######
+##########################
+instructions = visual.TextStim(
+    win = win,
+    alignText = "center",
+    anchorHoriz = "center",
+    anchorVert = "center",
+    font = "courier new",
+    color = [-1] * 3,
+    units = "pix",
+    height = visual_angle(0.5),
+    wrapWidth = visual_angle(18)
+)
+
+
+
+##########################
+#### Practice Trial #####
+##########################
+instructions.text = """
+practice trial:  start
+"""
+instructions.draw()
+win.flip()
+event.waitKeys()
+
+practice = KohExperiment(1.5, condition, win)
+practice_trial = next(iter(practice))
+for key, value in practice[practice_trial].items():
+    value.display_grid()
+win.flip()
+event.waitKeys()
+
+
+##########################
+##### Run Experiment #####
+##########################
+instructions.text = """
+experimental trials: start
+"""
+instructions.draw()
+win.flip()
+event.waitKeys()
+
+ # number is the stimulus size in degrees
+test = KohExperiment(1.5, condition, win)
+for key, value in test.items():
+    for x, y in value.items():
+        y.display_grid()
+    print(f"{key}: {value.record_stimulus()}")
+    response = collect_mouse_response()
+    
+
+##########################
+### Final Data Logging ###
+##########################
+# check to see if initial datafile exists and open to write or append mode
+"""
+if os.path.exists(data_path):
+    data_file = open(data_path, "a")
+else:
+    data_file = open(data_path, 'w')
+
+for item in exp_data:
+    print(*item, sep = ',', file = data_file)
+data_file.close()
+"""
