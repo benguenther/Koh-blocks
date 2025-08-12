@@ -5,7 +5,7 @@
 
 from psychopy import visual, event, gui, clock
 from KohBlocks import KohExperiment
-import sys, os, math, time
+import sys, os, math, time, csv
 
 # if/else block to simplify testing/development by hardcoding experiment parameters
 if True:
@@ -68,8 +68,9 @@ if not os.path.exists(data_path):
         "trial",  # Counter for the Trial Number
         "target_location", # int 1-3 defining target position 1: left, 2: center, 3: right
         "target_rotation", # int 0-3 defomomg target rotation (clockwise) 0: 0deg, 1: 90deg, 2: 180deg, 3: 270deg
+        "spread", # True or False
         "response",
-        "accuarcy"
+        "accuracy"
         "rt", 
     ]
     # attach headings to the data
@@ -104,8 +105,8 @@ response_box_1 = visual.Rect(
     units = "pix",
     size = visual_angle(3.1),
     fillColor = [1] * 3,
-    opacity = 0.0,
-    pos = (-300, -150)
+    opacity = 0.4,
+    pos = (-visual_angle(3.0), -visual_angle(1.5))
 )
 
 response_box_2 = visual.Rect(
@@ -113,8 +114,8 @@ response_box_2 = visual.Rect(
     units = "pix",
     size = visual_angle(3.1),
     fillColor = [1] * 3,
-    opacity = 0.0,
-    pos = (0, -150)
+    opacity = 0.4,
+    pos = (0, -visual_angle(1.5))
 )
 
 response_box_3 = visual.Rect(
@@ -122,8 +123,8 @@ response_box_3 = visual.Rect(
     units = "pix",
     size = visual_angle(3.1),
     fillColor = [1] * 3,
-    opacity = 0.0,
-    pos = (300, -150)
+    opacity = 0.4,
+    pos = (visual_angle(3.0), -visual_angle(1.5))
 )
 
 response_boxes = [response_box_1, response_box_2, response_box_3]
@@ -207,7 +208,28 @@ for key, value in test.items():
     for x, y in value.items():
         y.display_grid()
     print(f"{key}: {value.record_stimulus()}")
+    
+    print(subj_id, key.split()[0], key.split()[1])
+    print(test[key])
+
+    
     response = collect_mouse_response()
+    
+    trial_data = [
+        subj_id, # subject ID
+        condition, # record the condition
+        key, # Counter for the Trial Number
+        #target_location", # int 1-3 defining target position 1: left, 2: center, 3: right
+        #target_rotation", # int 0-3 defomomg target rotation (clockwise) 0: 0deg, 1: 90deg, 2: 180deg, 3: 270deg
+        #spread", # True or False
+        response[0], #response",
+        #accuracy"
+        response[1] #rt", 
+    ]
+    
+    #exp_data.append(trial_data)
+    
+
     
 
 ##########################

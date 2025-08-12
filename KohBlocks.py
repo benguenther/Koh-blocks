@@ -315,6 +315,8 @@ class KohStimuli():
 
     def record_stimulus(self):
         return {key: value.log_design() for key, value in self._stimuli.items()}
+    
+    
 
 
 class KohExperiment():
@@ -451,7 +453,15 @@ class KohExperiment():
 
     def condition_logging(self):
         pass
-
+        # id
+        # condition
+        # trial number
+        # target location
+        # target rotation
+        # spread
+        # response
+        # accuracy
+        # rt
 
 if __name__ in "__main__":
     from psychopy import event
