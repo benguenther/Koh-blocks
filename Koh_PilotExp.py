@@ -4,7 +4,7 @@
 # Python version: 3.10.11
 
 from psychopy import visual, event, gui, clock
-from KohBlocks import KohExperiment
+from KohBlocks import KohExperiment, KohPatternLogs
 import sys, os, math, time, csv
 
 # if/else block to simplify testing/development by hardcoding experiment parameters
@@ -105,8 +105,8 @@ response_box_1 = visual.Rect(
     units = "pix",
     size = visual_angle(3.1),
     fillColor = [1] * 3,
-    opacity = 0.4,
-    pos = (-visual_angle(3.0), -visual_angle(1.5))
+    opacity = 0.0,
+    pos = (-visual_angle(4.0), -visual_angle(2.0))
 )
 
 response_box_2 = visual.Rect(
@@ -114,8 +114,8 @@ response_box_2 = visual.Rect(
     units = "pix",
     size = visual_angle(3.1),
     fillColor = [1] * 3,
-    opacity = 0.4,
-    pos = (0, -visual_angle(1.5))
+    opacity = 0.0,
+    pos = (0, -visual_angle(2.0))
 )
 
 response_box_3 = visual.Rect(
@@ -123,8 +123,8 @@ response_box_3 = visual.Rect(
     units = "pix",
     size = visual_angle(3.1),
     fillColor = [1] * 3,
-    opacity = 0.4,
-    pos = (visual_angle(3.0), -visual_angle(1.5))
+    opacity = 0.0,
+    pos = (visual_angle(4.0), -visual_angle(2.0))
 )
 
 response_boxes = [response_box_1, response_box_2, response_box_3]
@@ -156,6 +156,13 @@ def collect_mouse_response(locations = response_boxes):
     return (response, rt)
 
 
+def record_test_pattern(pattern, record: dict):
+    if pattern not in record.values():
+        record[len(record) + 1] = pattern
+    
+    for key, value in record.items():
+        if value == pattern:
+            return key
 
 ##########################
 ###### Instructions ######
@@ -202,39 +209,56 @@ instructions.draw()
 win.flip()
 event.waitKeys()
 
- # number is the stimulus size in degrees
+# class for tracking the test/target Koh patterns
+# loads a dict and methods for tracking current and past test/target patterns
+koh_block_patterns = KohPatternLogs()
+
+# class object that loads the experimetn and corresponding conditions
+# number is the size in degrees
 test = KohExperiment(1.5, condition, win)
+
 for key, value in test.items():
+    # add the used test pattern to the log and return the int key value for that pattern in the log
+    test_pattern = koh_block_patterns.add_pattern_to_log(value._stimuli["test"])
+
+    # value is for a KohStimuli object which contains a dictionary the 4 Koh patterns displayed
+    # Each pattern is a KohGrid object.  Keys: "test", "target", "distractor_1", "distractor_2"
     for x, y in value.items():
         y.display_grid()
-    print(f"{key}: {value.record_stimulus()}")
+    #print(f"{key}: {value.record_stimulus()}")
     
-    print(subj_id, key.split()[0], key.split()[1])
-    print(test[key])
-
-    
+    # call exp function to collect a mouse response.  returns int (1-3) for object selected and trial rt
     response = collect_mouse_response()
+    # compare mouse click to correct target position to log accuracy.  Correct == 1, incorrect == 0
+    resp_acc = 1 if response[0] == value._stimuli["target"].log_position() else 0
     
+    # list of data to be recorded for each trial
     trial_data = [
         subj_id, # subject ID
         condition, # record the condition
-        key, # Counter for the Trial Number
-        #target_location", # int 1-3 defining target position 1: left, 2: center, 3: right
-        #target_rotation", # int 0-3 defomomg target rotation (clockwise) 0: 0deg, 1: 90deg, 2: 180deg, 3: 270deg
-        #spread", # True or False
+        int(key.split()[1]), # Counter for the Trial Number
+        value._stimuli["target"].log_position(), # int 1-3 defining target position 1: left, 2: center, 3: right
+        value._stimuli["target"].log_rotation(), # int 0-3 defomomg target rotation (clockwise) 0: 0deg, 1: 90deg, 2: 180deg, 3: 270deg
+        value._stimuli["target"].log_spread(), # True or False
         response[0], #response",
-        #accuracy"
-        response[1] #rt", 
+        resp_acc, #accuracy"
+        response[1], #rt", 
+        test_pattern # number (key) linking to a dict of the specific pattern used
+        # outline, True or False
     ]
-    
-    #exp_data.append(trial_data)
-    
 
-    
+    # add trials data to the overall experiment datafile    
+    exp_data.append(trial_data)
+
 
 ##########################
 ### Final Data Logging ###
 ##########################
+
+# save the current list of used Koh test patterns.
+# this overwrites the old list
+koh_block_patterns.save_pattern_data()    
+
 # check to see if initial datafile exists and open to write or append mode
 """
 if os.path.exists(data_path):
