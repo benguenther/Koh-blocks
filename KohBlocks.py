@@ -4,7 +4,7 @@
 # Python version: 3.10.11
 
 from psychopy import visual
-import random, math
+import random, math, csv, os
 import numpy as np
 
 class KohBlock:
@@ -82,10 +82,12 @@ class KohGrid:
     def __init__(self, position: tuple, scale: int,  win, block_type = "", pat = None, line_color = "black"):#spread: int, 
         self.h_center = position[0]#h_center
         self.v_center = position[1]#v_center
+        self.pos_number = position[2]
         self.scale = scale
         self.block_type = block_type # specifies if blocks are random or fixed
         self.win = win
         self.line_color = line_color
+        self.__rotation = 0
         
         self.positions = self.position_grid()
         self.original_positions = self.positions # save the original just in case
@@ -156,6 +158,9 @@ class KohGrid:
             ], # cube 9
         ]   
         self.positions = np.add(self.positions, spreader)
+        
+        self.__spread = False if distance == 0 else True
+
 
 
     def block_design(self):
@@ -207,6 +212,7 @@ class KohGrid:
                 updated_blocks.append(temp)
         
             self.pattern = updated_blocks
+        self.__rotation = n
     
 
     def reset_pattern(self):
@@ -225,10 +231,25 @@ class KohGrid:
     def log_design(self):
         return self.pattern
     
+    def log_position(self):
+        return self.pos_number
+        
+    def log_rotation(self):
+        rotations = [0, 90, 180, 270]
+        return rotations[self.__rotation]
+        
+    
+    def log_spread(self):
+        return self.__spread
+    
+    def log_outline(self):
+        return True if self.line_color else False
+    
 
 class KohStimuli():
     
-    def __init__(self):
+    def __init__(self, condition: str):
+        self.condition = condition
         self._stimuli = {
             "test": None,
             "target": None,
@@ -239,13 +260,13 @@ class KohStimuli():
     # method to convert a int id for locations into a tuple of x, y coordinates
     def __set_positions(self, location: int):
         if location == 0: # the test location at 0, 0
-            return 0, 150
+            return 0, self.set_visual_angle(2.0), 0 # (0, 150)
         if location == 1:
-            return -300, -150
+            return -self.set_visual_angle(4.0), -self.set_visual_angle(2.0), 1 # (-300, -150)
         if location == 2:
-            return 0, -150
+            return 0, -self.set_visual_angle(2.0), 2 # (0, -150)
         if location == 3:
-            return 300, -150
+            return self.set_visual_angle(4.0), -self.set_visual_angle(2.0), 3 #(300, -150)
 
     def add_stimulus(self, name: str, location: int, scale: int,  win, block_type, line_color):
         # method returns a tuple with x, y coords for the koh grid based on a number for each location
@@ -287,6 +308,25 @@ class KohStimuli():
                 stim["design"],
                 stim["line_color"]
                 )
+            
+
+    def set_visual_angle(self, deg: int):
+        if self.condition == "test":
+            screen_pix = [1920, 1080]
+            screen_mm = [529, 297]
+            distance = 1000
+        elif self.condition == "far":
+            screen_pix = [3840, 2160]
+            screen_mm = [1805, 1015]
+            distance = 5385 
+        elif self.condition == "near":
+            screen_pix = [3840, 2160]
+            screen_mm = [597, 335] 
+            distance = 400
+        # assumes that pixels are square
+        pix_mm = (screen_pix[0]/screen_mm[0])
+        pix = (2 * distance) * math.tan((deg * (math.pi/180))/2) * pix_mm
+        return round(pix)
 
 
     def __iter__(self):
@@ -388,7 +428,7 @@ class KohExperiment():
         index = 0
         for trial in self.generate_trial_list():
             index += 1
-            screen = KohStimuli()
+            screen = KohStimuli(self.__condition)
             screen.load_stimulus_conditions(trial, self.__window)
 
             if trial[0]["style"] == "spread":
@@ -396,7 +436,8 @@ class KohExperiment():
             else:
                 spread_value = 0
             
-            rotation_value = random.choice([0, 1, 2, 3])
+            # add 0 to the list to include targets that are not rotated
+            rotation_value = random.choice([1, 2, 3])
 
             for key, value in screen.items():
                 if key in ["target", "distractor_1", "distractor_2"]:
@@ -404,7 +445,7 @@ class KohExperiment():
                     if key == "target" and rotation_value != 0:
                         value.rotate_grid(rotation_value)
 
-            self.__trials[f"{self.__condition}: {index}"] = screen
+            self.__trials[f"{self.__condition}: {index}"] = screen ### what if this is converted to a list? with trial data added
 
 
     def __set_scale(self):
@@ -449,19 +490,117 @@ class KohExperiment():
     
     def items(self):
         return self.__trials.items()
+    
+
+class KohPatternLogs:
+
+    def __init__(self):
+        self.__patterns = {}
+        self.load_pattern_data()
+
+    def add_pattern_to_log(self, pattern: KohGrid):
+        if pattern.log_design() not in self.__patterns.values():
+            self.__patterns[len(self.__patterns) + 1] = pattern.log_design()
+
+        # return the key for data logging
+        for key, value in self.__patterns.items():
+            if value == pattern.log_design():
+                return key
+
+    def save_pattern_data(self):
+        with open("koh_experiment_patterns.csv", 'w', newline='') as datafile:
+            writer = csv.writer(datafile)
+            for key, value in self.__patterns.items():
+                writer.writerow([key, value])        
+        datafile.close()
 
 
-    def condition_logging(self):
-        pass
-        # id
-        # condition
-        # trial number
-        # target location
-        # target rotation
-        # spread
-        # response
-        # accuracy
-        # rt
+    def load_pattern_data(self):
+        if os.path.exists("koh_experiment_patterns.csv"):
+            temp = open("koh_experiment_patterns.csv", "r")
+            reader = csv.reader(temp)
+            for row in reader:
+                self.__patterns[row[0]] = row[1]
+            temp.close()
+
+
+    def __iter__(self):
+        return iter(self.__patterns.keys())
+    
+
+    def __getitem__(self, key):
+        return self.__patterns[key]
+    
+
+    def __setitem__(self, key, value):
+        self.__patterns[key] = value
+
+
+    def keys(self):
+        return self.__patterns.keys()
+    
+
+    def values(self):
+        return self.__patterns.values()
+    
+
+    def items(self):
+        return self.__patterns.items()
+        
+
+class ExperimentData:
+
+    def __init__(self, filename: str):
+        self.__exp_data = []
+        self.__filename = filename
+        self.check_for_existing_data()
+
+
+    def load_data_header(self, *variables):
+        # does not check for existing file because the datafile
+        # is rewritten each time the exp is run
+        self.__exp_data.append([var for var in variables])
+
+
+    def add_trial_data(self, *variables):
+        if len(variables) == len(self.__exp_data[0]):
+            self.__exp_data.append([var for var in variables])
+        else:
+            raise IndexError(f"trial data ({len(variables)} vars) does not match header  ({len(self.__exp_data[0])} vars)")
+
+
+    def check_for_existing_data(self):
+        if os.path.exists(self.__filename):
+            temp = open(self.__filename, "r")
+            reader = csv.reader(temp)
+            next(reader)
+            for row in reader:
+                self.__exp_data.append(row)
+            temp.close()
+
+    
+    def save_data(self):
+        print(self.__exp_data)
+        with open(self.__filename, 'w', newline='') as datafile:
+            writer = csv.writer(datafile)
+            for row in self.__exp_data:
+                writer.writerow(row)
+        datafile.close()
+
+
+    def __iter__(self):
+        self.n = 0
+        return self
+    
+
+    def __next__(self):
+        if self.n < len(self.__exp_data):
+            trial_data = self.__exp_data[self.n]
+            self.n += 1
+            return trial_data
+        else:
+            raise StopIteration
+
 
 if __name__ in "__main__":
     from psychopy import event
@@ -474,14 +613,23 @@ if __name__ in "__main__":
         color=[.5] * 3,
         units="pix"
     )
+
+    condition = "test"
+    subj_id = "0001"
     
-    test = KohExperiment(1.5, "test")
+    test = KohExperiment(1.5, condition, win)
     for key, value in test.items():
         for x, y in value.items():
             y.display_grid()
         print(f"{key}: {value.record_stimulus()}")
+        
+        print(subj_id, key.split()[0], key.split()[1])
+        print(value._stimuli["target"].log_spread())
+
         win.flip()
         event.waitKeys()
+        
+
 
 
 
