@@ -232,12 +232,6 @@ class KohGrid:
         return self.pattern
     
     def log_position(self):
-        """if (self.h_center, self.v_center) == (-300, -150):
-            return 1
-        elif (self.h_center, self.v_center) == (0, -150):
-            return 2
-        elif (self.h_center, self.v_center) == (300, -150):
-            return 3"""
         return self.pos_number
         
     def log_rotation(self):
@@ -248,7 +242,9 @@ class KohGrid:
     def log_spread(self):
         return self.__spread
     
-
+    def log_outline(self):
+        return True if self.line_color else False
+    
 
 class KohStimuli():
     
@@ -518,8 +514,6 @@ class KohPatternLogs:
                 writer.writerow([key, value])        
         datafile.close()
 
-        print(self.__patterns)
-
 
     def load_pattern_data(self):
         if os.path.exists("koh_experiment_patterns.csv"):
@@ -528,27 +522,85 @@ class KohPatternLogs:
             for row in reader:
                 self.__patterns[row[0]] = row[1]
             temp.close()
-        print(self.__patterns)
 
 
     def __iter__(self):
         return iter(self.__patterns.keys())
     
+
     def __getitem__(self, key):
         return self.__patterns[key]
     
+
     def __setitem__(self, key, value):
         self.__patterns[key] = value
+
 
     def keys(self):
         return self.__patterns.keys()
     
+
     def values(self):
         return self.__patterns.values()
     
+
     def items(self):
         return self.__patterns.items()
         
+
+class ExperimentData:
+
+    def __init__(self, filename: str):
+        self.__exp_data = []
+        self.__filename = filename
+        self.check_for_existing_data()
+
+
+    def load_data_header(self, *variables):
+        # does not check for existing file because the datafile
+        # is rewritten each time the exp is run
+        self.__exp_data.append([var for var in variables])
+
+
+    def add_trial_data(self, *variables):
+        if len(variables) == len(self.__exp_data[0]):
+            self.__exp_data.append([var for var in variables])
+        else:
+            raise IndexError(f"trial data ({len(variables)} vars) does not match header  ({len(self.__exp_data[0])} vars)")
+
+
+    def check_for_existing_data(self):
+        if os.path.exists(self.__filename):
+            temp = open(self.__filename, "r")
+            reader = csv.reader(temp)
+            next(reader)
+            for row in reader:
+                self.__exp_data.append(row)
+            temp.close()
+
+    
+    def save_data(self):
+        print(self.__exp_data)
+        with open(self.__filename, 'w', newline='') as datafile:
+            writer = csv.writer(datafile)
+            for row in self.__exp_data:
+                writer.writerow(row)
+        datafile.close()
+
+
+    def __iter__(self):
+        self.n = 0
+        return self
+    
+
+    def __next__(self):
+        if self.n < len(self.__exp_data):
+            trial_data = self.__exp_data[self.n]
+            self.n += 1
+            return trial_data
+        else:
+            raise StopIteration
+
 
 if __name__ in "__main__":
     from psychopy import event
@@ -577,19 +629,7 @@ if __name__ in "__main__":
         win.flip()
         event.waitKeys()
         
-        trial_data = [
-            subj_id, # subject ID
-            condition, # record the condition
-            key, # Counter for the Trial Number
-            value._stimuli["target"].log_position(), # int 1-3 defining target position 1: left, 2: center, 3: right
-            value._stimuli["target"].log_rotation(), #target_rotation", # int 0-3 defomomg target rotation (clockwise) 0: 0deg, 1: 90deg, 2: 180deg, 3: 270deg
-            value._stimuli["target"].log_spread(), # True or False
-            #response[0], #response",
-            #accuracy"
-            #response[1] #rt", 
-        ]
-        
-        #exp_data.append(trial_data)
+
 
 
 
