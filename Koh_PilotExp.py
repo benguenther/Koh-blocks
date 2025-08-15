@@ -167,7 +167,9 @@ instructions = visual.TextStim(
 ##########################
 
 instructions.text = """
-practice trial:  start
+Welcome to the Experiment \n
+\n
+Press any key to begin the practice trials
 """
 instructions.draw()
 win.flip()
@@ -180,13 +182,24 @@ for key, value in practice_trials.items():
     # not assigned to a variable because not logging the data
     collect_mouse_response()
 
+instructions.text = """
+Do you have any questions before we continue? \n
+\n
+Press any key to continue
+"""
+instructions.draw()
+win.flip()
+event.waitKeys()
+
 
 ##########################
 ##### Run Experiment #####
 ##########################
 
-instructions.text = """
-experimental trials: start
+instructions.text = f"""
+The {condition} condition consists of 28 trials. \n
+\n
+Press any key to begin
 """
 instructions.draw()
 win.flip()
@@ -213,6 +226,7 @@ exp_data.load_data_header(
     "RT",
     "KohPattern Number"
 )
+exp_data.check_for_existing_data()
 
 # class object that loads the experimetn and corresponding conditions
 # number is the size in degrees
@@ -255,6 +269,14 @@ for key, value in main_experiment.items():
         test_pattern # number (key) linking to a dict of the specific pattern used
         ) 
 
+instructions.text = f"""
+The {condition} condtion has successfully been completed.
+\n
+Thank you for your participation.
+"""
+instructions.draw()
+win.flip()
+event.waitKeys()
 
 ##########################
 ### Final Data Logging ###

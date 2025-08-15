@@ -583,7 +583,7 @@ class ExperimentData:
     def __init__(self, filename: str):
         self.__exp_data = []
         self.__filename = filename
-        self.check_for_existing_data()
+        #self.check_for_existing_data()
 
 
     def load_data_header(self, *variables):
