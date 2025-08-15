@@ -119,6 +119,7 @@ class KohGrid:
         ]
         return self.positions
     
+
     def move_position_grid(self, new_h, new_v):
         self.positions = [
             [
@@ -160,7 +161,6 @@ class KohGrid:
         self.positions = np.add(self.positions, spreader)
         
         self.__spread = False if distance == 0 else True
-
 
 
     def block_design(self):
@@ -231,9 +231,11 @@ class KohGrid:
     def log_design(self):
         return self.pattern
     
+
     def log_position(self):
         return self.pos_number
         
+
     def log_rotation(self):
         rotations = [0, 90, 180, 270]
         return rotations[self.__rotation]
@@ -242,6 +244,7 @@ class KohGrid:
     def log_spread(self):
         return self.__spread
     
+
     def log_outline(self):
         return True if self.line_color else False
     
@@ -257,6 +260,7 @@ class KohStimuli():
             "distractor_2": None
         }
 
+
     # method to convert a int id for locations into a tuple of x, y coordinates
     def __set_positions(self, location: int):
         if location == 0: # the test location at 0, 0
@@ -267,6 +271,7 @@ class KohStimuli():
             return 0, -self.set_visual_angle(2.0), 2 # (0, -150)
         if location == 3:
             return self.set_visual_angle(4.0), -self.set_visual_angle(2.0), 3 #(300, -150)
+
 
     def add_stimulus(self, name: str, location: int, scale: int,  win, block_type, line_color):
         # method returns a tuple with x, y coords for the koh grid based on a number for each location
@@ -357,8 +362,6 @@ class KohStimuli():
         return {key: value.log_design() for key, value in self._stimuli.items()}
     
     
-
-
 class KohExperiment():
     
     def __init__(self, deg: int, condition: str, window: visual.Window):
@@ -507,6 +510,7 @@ class KohPatternLogs:
             if value == pattern.log_design():
                 return key
 
+
     def save_pattern_data(self):
         with open("koh_experiment_patterns.csv", 'w', newline='') as datafile:
             writer = csv.writer(datafile)
@@ -621,16 +625,6 @@ if __name__ in "__main__":
     for key, value in test.items():
         for x, y in value.items():
             y.display_grid()
-        print(f"{key}: {value.record_stimulus()}")
-        
-        print(subj_id, key.split()[0], key.split()[1])
-        print(value._stimuli["target"].log_spread())
 
         win.flip()
         event.waitKeys()
-        
-
-
-
-
-    
