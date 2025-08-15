@@ -251,7 +251,7 @@ class KohGrid:
 
 class KohStimuli():
     
-    def __init__(self, condition: str):
+    def __init__(self, condition: str): #, trial_type: str):
         self.condition = condition
         self._stimuli = {
             "test": None,
@@ -281,7 +281,8 @@ class KohStimuli():
         if name == "test":
             pattern = None # temporary
         # target replicates and possibly rotates the test pattern
-        elif name == "target":
+        # trial type != catch is limits the pattern duplication to "target" trials
+        elif name == "target" and self.trial_type != "catch":
             try:
                 # reads pattern from the test stimulus and set's it to match
                 pattern = self._stimuli["test"].log_design()
@@ -303,8 +304,14 @@ class KohStimuli():
         self._stimuli[name] = stimulus
 
     
+    # method to load a trial condition to set overall screen parameters.
     def load_stimulus_conditions(self, stimuli: list, window: visual.Window):        
         for stim in stimuli:
+            # checks for trial type as attached to the target stimulus
+            # sets a "target" vs. "catch" trial
+            if stim["name"] == "target":
+                self.trial_type = stim["validity"]
+            
             self.add_stimulus(
                 stim["name"], 
                 stim["position"], 
@@ -314,7 +321,6 @@ class KohStimuli():
                 stim["line_color"]
                 )
             
-
     def set_visual_angle(self, deg: int):
         if self.condition == "test":
             screen_pix = [1920, 1080]
@@ -361,6 +367,10 @@ class KohStimuli():
     def record_stimulus(self):
         return {key: value.log_design() for key, value in self._stimuli.items()}
     
+
+    def log_trial_type(self):
+        return self.trial_type
+    
     
 class KohExperiment():
     
@@ -381,7 +391,8 @@ class KohExperiment():
         for s in style:
             for o in outline:
                 for p in position * 2:
-                    condition_list.append((s,o,p))
+                    condition_list.append((s,o,p, "target"))
+                condition_list.append((s,o,p, "catch"))
 
         trial_list = []
 
@@ -400,7 +411,11 @@ class KohExperiment():
                 "size":  self.__scale,
                 "design": "random",
                 "line_color": trial[1],
-                "style": trial[0]
+                "style": trial[0],
+                "validity": trial[3] # logs target validity. 
+                # when stim conditions are loaded, this is checked to set the trials validity
+                # validity determines if the target pattern will match the test pattern and what 
+                # the correct response will be.  Catch trials do not match, correct response is 0
             }
             positions = [1, 2, 3]
             positions.remove(trial[2])
@@ -423,6 +438,7 @@ class KohExperiment():
             trial_list.append([test_pattern, target_pattern, distractor_1, distractor_2])
 
         random.shuffle(trial_list) 
+        print(trial_list)
         return trial_list
     
 
@@ -448,7 +464,7 @@ class KohExperiment():
                     if key == "target" and rotation_value != 0:
                         value.rotate_grid(rotation_value)
 
-            self.__trials[f"{self.__condition}: {index}"] = screen ### what if this is converted to a list? with trial data added
+            self.__trials[f"{self.__condition}: {index}"] = screen
 
 
     def __set_scale(self):
@@ -620,11 +636,13 @@ if __name__ in "__main__":
 
     condition = "test"
     subj_id = "0001"
-    
+
     test = KohExperiment(1.5, condition, win)
+
     for key, value in test.items():
         for x, y in value.items():
             y.display_grid()
+        
 
-        win.flip()
         event.waitKeys()
+ 

@@ -108,7 +108,16 @@ response_box_3 = visual.Rect(
     pos = (visual_angle(4.0), -visual_angle(2.0))
 )
 
-response_boxes = [response_box_1, response_box_2, response_box_3]
+response_box_0 = visual.Rect(
+    win = win,
+    units = "pix",
+    size = visual_angle(3.1),
+    fillColor = [1] * 3,
+    opacity = 0.0,
+    pos = (0, visual_angle(2.0))
+)
+
+response_boxes = [response_box_0, response_box_1, response_box_2, response_box_3]
 
 mouse = event.Mouse(
     win = win,
@@ -127,7 +136,7 @@ def collect_mouse_response(locations = response_boxes):
         for n, box in enumerate(locations):
             if mouse.isPressedIn(box):
                 clicked = True
-                response = (n + 1) 
+                response = n 
                 end_time = clock.getTime()
                 break # exit this loop
             else: # this runs once at the completion of the for loop
@@ -197,6 +206,7 @@ exp_data.load_data_header(
     "Target Position",
     "Target Rotation",
     "Target Spread",
+    "trial type",
     "Outline",
     "Response",
     "Response Accuracy",
@@ -206,9 +216,9 @@ exp_data.load_data_header(
 
 # class object that loads the experimetn and corresponding conditions
 # number is the size in degrees
-test = KohExperiment(1.5, condition, win)
+main_experiment = KohExperiment(1.5, condition, win)
 
-for key, value in test.items():
+for key, value in main_experiment.items():
     # add the used test pattern to the log and return the int key value for that pattern in the log
     test_pattern = koh_block_patterns.add_pattern_to_log(value._stimuli["test"])
 
@@ -219,8 +229,15 @@ for key, value in test.items():
     
     # call exp function to collect a mouse response.  returns int (1-3) for object selected and trial rt
     response = collect_mouse_response()
+    
+    # variable to identify correct response.  If it is a catch trial, the correct response is 0
+    # if it is a "target" trial then the correct response is the logged target location.
+    # note there is always a logged target location.  Catch trials are managed by the trial_type variable
+    # when a trial is listed as "catch", the pattern at the target location is not set to match the test
+    correct_response = 0 if value.log_trial_type() == "catch" else value._stimuli["target"].log_position()
+   
     # compare mouse click to correct target position to log accuracy.  Correct == 1, incorrect == 0
-    resp_acc = 1 if response[0] == value._stimuli["target"].log_position() else 0
+    resp_acc = 1 if response[0] == correct_response else 0
     
     # log trial data using the ExperimentData object
     exp_data.add_trial_data(
@@ -228,9 +245,10 @@ for key, value in test.items():
         condition, # record the condition
         int(key.split()[1]), # Counter for the Trial Number
         value._stimuli["target"].log_position(), # int 1-3 defining target position 1: left, 2: center, 3: right
-        value._stimuli["target"].log_rotation(), # int 0-3 defomomg target rotation (clockwise) 0: 0deg, 1: 90deg, 2: 180deg, 3: 270deg
+        value._stimuli["target"].log_rotation(), # int 0-3 defining target rotation (clockwise) 0: 0deg, 1: 90deg, 2: 180deg, 3: 270deg
         value._stimuli["target"].log_spread(), # True or False
         value._stimuli["target"].log_outline(), # outline, True or False
+        value.log_trial_type(), # "target" or "catch"
         response[0], #response",
         resp_acc, #accuracy"
         response[1], #rt", 
@@ -244,4 +262,3 @@ for key, value in test.items():
 
 koh_block_patterns.save_pattern_data() 
 exp_data.save_data()   
-
