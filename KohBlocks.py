@@ -119,6 +119,7 @@ class KohGrid:
         ]
         return self.positions
     
+
     def move_position_grid(self, new_h, new_v):
         self.positions = [
             [
@@ -160,7 +161,6 @@ class KohGrid:
         self.positions = np.add(self.positions, spreader)
         
         self.__spread = False if distance == 0 else True
-
 
 
     def block_design(self):
@@ -231,9 +231,11 @@ class KohGrid:
     def log_design(self):
         return self.pattern
     
+
     def log_position(self):
         return self.pos_number
         
+
     def log_rotation(self):
         rotations = [0, 90, 180, 270]
         return rotations[self.__rotation]
@@ -242,13 +244,14 @@ class KohGrid:
     def log_spread(self):
         return self.__spread
     
+
     def log_outline(self):
         return True if self.line_color else False
     
 
 class KohStimuli():
     
-    def __init__(self, condition: str):
+    def __init__(self, condition: str): #, trial_type: str):
         self.condition = condition
         self._stimuli = {
             "test": None,
@@ -256,6 +259,7 @@ class KohStimuli():
             "distractor_1": None,
             "distractor_2": None
         }
+
 
     # method to convert a int id for locations into a tuple of x, y coordinates
     def __set_positions(self, location: int):
@@ -268,6 +272,7 @@ class KohStimuli():
         if location == 3:
             return self.set_visual_angle(4.0), -self.set_visual_angle(2.0), 3 #(300, -150)
 
+
     def add_stimulus(self, name: str, location: int, scale: int,  win, block_type, line_color):
         # method returns a tuple with x, y coords for the koh grid based on a number for each location
         position = self.__set_positions(location)
@@ -276,7 +281,8 @@ class KohStimuli():
         if name == "test":
             pattern = None # temporary
         # target replicates and possibly rotates the test pattern
-        elif name == "target":
+        # trial type != catch is limits the pattern duplication to "target" trials
+        elif name == "target" and self.trial_type != "catch":
             try:
                 # reads pattern from the test stimulus and set's it to match
                 pattern = self._stimuli["test"].log_design()
@@ -298,8 +304,14 @@ class KohStimuli():
         self._stimuli[name] = stimulus
 
     
+    # method to load a trial condition to set overall screen parameters.
     def load_stimulus_conditions(self, stimuli: list, window: visual.Window):        
         for stim in stimuli:
+            # checks for trial type as attached to the target stimulus
+            # sets a "target" vs. "catch" trial
+            if stim["name"] == "target":
+                self.trial_type = stim["validity"]
+            
             self.add_stimulus(
                 stim["name"], 
                 stim["position"], 
@@ -309,7 +321,6 @@ class KohStimuli():
                 stim["line_color"]
                 )
             
-
     def set_visual_angle(self, deg: int):
         if self.condition == "test":
             screen_pix = [1920, 1080]
@@ -356,9 +367,11 @@ class KohStimuli():
     def record_stimulus(self):
         return {key: value.log_design() for key, value in self._stimuli.items()}
     
+
+    def log_trial_type(self):
+        return self.trial_type
     
-
-
+    
 class KohExperiment():
     
     def __init__(self, deg: int, condition: str, window: visual.Window):
@@ -378,7 +391,8 @@ class KohExperiment():
         for s in style:
             for o in outline:
                 for p in position * 2:
-                    condition_list.append((s,o,p))
+                    condition_list.append((s,o,p, "target"))
+                condition_list.append((s,o,p, "catch"))
 
         trial_list = []
 
@@ -397,7 +411,11 @@ class KohExperiment():
                 "size":  self.__scale,
                 "design": "random",
                 "line_color": trial[1],
-                "style": trial[0]
+                "style": trial[0],
+                "validity": trial[3] # logs target validity. 
+                # when stim conditions are loaded, this is checked to set the trials validity
+                # validity determines if the target pattern will match the test pattern and what 
+                # the correct response will be.  Catch trials do not match, correct response is 0
             }
             positions = [1, 2, 3]
             positions.remove(trial[2])
@@ -420,6 +438,7 @@ class KohExperiment():
             trial_list.append([test_pattern, target_pattern, distractor_1, distractor_2])
 
         random.shuffle(trial_list) 
+        print(trial_list)
         return trial_list
     
 
@@ -445,7 +464,7 @@ class KohExperiment():
                     if key == "target" and rotation_value != 0:
                         value.rotate_grid(rotation_value)
 
-            self.__trials[f"{self.__condition}: {index}"] = screen ### what if this is converted to a list? with trial data added
+            self.__trials[f"{self.__condition}: {index}"] = screen
 
 
     def __set_scale(self):
@@ -506,6 +525,7 @@ class KohPatternLogs:
         for key, value in self.__patterns.items():
             if value == pattern.log_design():
                 return key
+
 
     def save_pattern_data(self):
         with open("koh_experiment_patterns.csv", 'w', newline='') as datafile:
@@ -616,21 +636,13 @@ if __name__ in "__main__":
 
     condition = "test"
     subj_id = "0001"
-    
+
     test = KohExperiment(1.5, condition, win)
+
     for key, value in test.items():
         for x, y in value.items():
             y.display_grid()
-        print(f"{key}: {value.record_stimulus()}")
         
-        print(subj_id, key.split()[0], key.split()[1])
-        print(value._stimuli["target"].log_spread())
 
-        win.flip()
         event.waitKeys()
-        
-
-
-
-
-    
+ 
