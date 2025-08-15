@@ -173,12 +173,12 @@ instructions.draw()
 win.flip()
 event.waitKeys()
 
-practice = KohExperiment(1.5, condition, win)
-practice_trial = next(iter(practice))
-for key, value in practice[practice_trial].items():
-    value.display_grid()
-win.flip()
-event.waitKeys()
+practice_trials = KohExperiment(1.5, condition, win, "practice")
+for key, value in practice_trials.items():
+    for practice_n, trial_n in value.items():
+        trial_n.display_grid()
+    # not assigned to a variable because not logging the data
+    collect_mouse_response()
 
 
 ##########################
@@ -216,7 +216,7 @@ exp_data.load_data_header(
 
 # class object that loads the experimetn and corresponding conditions
 # number is the size in degrees
-main_experiment = KohExperiment(1.5, condition, win)
+main_experiment = KohExperiment(1.5, condition, win, "experiment")
 
 for key, value in main_experiment.items():
     # add the used test pattern to the log and return the int key value for that pattern in the log

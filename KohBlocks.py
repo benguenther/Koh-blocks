@@ -251,7 +251,7 @@ class KohGrid:
 
 class KohStimuli():
     
-    def __init__(self, condition: str): #, trial_type: str):
+    def __init__(self, condition: str):
         self.condition = condition
         self._stimuli = {
             "test": None,
@@ -374,13 +374,14 @@ class KohStimuli():
     
 class KohExperiment():
     
-    def __init__(self, deg: int, condition: str, window: visual.Window):
+    def __init__(self, deg: int, condition: str, window: visual.Window, trial_type: str):
         self.__condition = condition
         self.__window = window
+        self.__trial_type = trial_type
         self.__deg = deg
         self.__set_scale()
         self.__add_koh_trials()
-        
+
 
     def generate_trial_list(self):
         style = ["solid", "spread"]
@@ -388,11 +389,19 @@ class KohExperiment():
         position = [1, 2, 3]
         condition_list = []
 
-        for s in style:
-            for o in outline:
-                for p in position * 2:
-                    condition_list.append((s,o,p, "target"))
-                condition_list.append((s,o,p, "catch"))
+        if self.__trial_type == "experiment":
+            for s in style:
+                for o in outline:
+                    for p in position * 2:
+                        condition_list.append((s,o,p, "target"))
+                    condition_list.append((s,o,p, "catch"))
+        elif self.__trial_type == "practice":
+            for s in style:
+                for o in outline:
+                    condition_list.append((s,o,random.choice(position), "target"))
+            condition_list.append(("solid", "black", 1, "catch"))
+        else:
+            raise ValueError(f"trial type: {self.__trial_type} invalid.  Must be 'experiment' or 'practice'")
 
         trial_list = []
 
@@ -437,8 +446,9 @@ class KohExperiment():
             }
             trial_list.append([test_pattern, target_pattern, distractor_1, distractor_2])
 
-        random.shuffle(trial_list) 
-        print(trial_list)
+        if self.__trial_type == "experiment":
+            random.shuffle(trial_list) 
+        
         return trial_list
     
 
@@ -600,7 +610,6 @@ class ExperimentData:
 
     
     def save_data(self):
-        print(self.__exp_data)
         with open(self.__filename, 'w', newline='') as datafile:
             writer = csv.writer(datafile)
             for row in self.__exp_data:
