@@ -79,10 +79,11 @@ class KohBlock:
 
 class KohGrid:
     
-    def __init__(self, position: tuple, scale: int,  win, block_type = "", pat = None, line_color = "black"):#spread: int, 
+    def __init__(self, position: tuple, scale: int,  win, block_type = "", pat = None, line_color = "black", num_blocks = 3):#spread: int, 
         self.h_center = position[0]#h_center
         self.v_center = position[1]#v_center
         self.pos_number = position[2]
+        self.num_blocks = num_blocks
         self.scale = scale
         self.block_type = block_type # specifies if blocks are random or fixed
         self.win = win
@@ -99,79 +100,46 @@ class KohGrid:
         self.original_pattern = self.pattern # save original pattern
 
 
-    def position_grid(self):
-        self.positions = [
-            [
-                [(self.h_center - self.scale), (self.v_center + self.scale)], # cube 1
-                [(self.h_center),(self.v_center + self.scale)], # cube 2
-                [(self.h_center + self.scale),(self.v_center + self.scale)]
-                ], # cube 3
-            [
-                [(self.h_center - self.scale),(self.v_center)], # cube 4
-                [(self.h_center),(self.v_center)], # cube 5
-                [(self.h_center + self.scale),(self.v_center)]
-                ], # cube 6
-            [
-                [(self.h_center - self.scale),(self.v_center - self.scale)], # cube 7
-                [(self.h_center),(self.v_center - self.scale)], # cube 8
-                [(self.h_center + self.scale),(self.v_center - self.scale)] # cube 9
-                ]
-        ]
-        return self.positions
+    def x_positions(self):
+        # returns a list of x coordinate modifiers for individual block placement.
+        # with 0,0 being the center of the grid, it's defines the center of each block in overall block units
+        # a 3x3 grid would be [-1,0,1]
+        # a 4x4 grid would be [-1.5, -0.5, 0.5, 1.5]
+        if self.num_blocks % 2 != 0:
+            return list(map(lambda x: x, range(-int((self.num_blocks-1)/2), int((self.num_blocks-1)/2+1), 1)))
+        elif self.num_blocks % 2 == 0:
+           return list(map(lambda x: x + 0.5, range(-int(self.num_blocks/2), int(self.num_blocks/2), 1)))
+        
     
+    def y_positions(self):
+        # returns list of y coordintate modifiers in the same manner as the x_positions() method
+        # list starts with positive values (top of grid) instead of negative as in x_positions() (left of grid)
+        if self.num_blocks % 2 != 0:
+            return list(map(lambda x: x, range(int((self.num_blocks-1)/2), -int((self.num_blocks-1)/2+1), -1)))
+        elif self.num_blocks % 2 == 0:
+            return list(map(lambda x: x - 0.5, range(int(self.num_blocks/2), -int(self.num_blocks/2), -1)))
 
-    def move_position_grid(self, new_h, new_v):
-        self.positions = [
-            [
-                [(new_h - self.scale), (new_v + self.scale)], # cube 1
-                [(new_h),(new_v + self.scale)], # cube 2
-                [(new_h + self.scale),(new_v + self.scale)]
-                ], # cube 3
-            [
-                [(new_h - self.scale),(new_v)], # cube 4
-                [(new_h),(new_v)], # cube 5
-                [(new_h + self.scale),(new_v)]
-                ], # cube 6
-            [
-                [(new_h - self.scale),(new_v - self.scale)], # cube 7
-                [(new_h),(new_v - self.scale)], # cube 8
-                [(new_h + self.scale),(new_v - self.scale)] # cube 9
-                ]
-        ]
+
+    def position_grid(self):
+        return [[(self.h_center + x * self.scale, self.v_center + y * self.scale) for x in self.x_positions()] for y in self.y_positions()]
 
 
     def spread_blocks(self, distance):
-        spreader = [
-            [
-                [(-distance), (distance)], # cube 1
-                [(0), (distance)], # cube 2
-                [(distance), (distance)]
-                ], # cube 3
-            [
-                [(-distance), (0)], # cube 4
-                [(0), (0)], # cube 5
-                [(distance), (0)]
-            ], # cube 6
-            [
-                [(-distance), (-distance)], # cube 7
-                [(-0), (-distance)], # cube 8
-                [(distance), (-distance)]
-            ], # cube 9
-        ]   
-        self.positions = np.add(self.positions, spreader)
-        
+        spreader = [[(x * distance, y * distance) for x in self.x_positions()] for y in self.y_positions()]
+        self.positions = np.add(self.positions, spreader)    
         self.__spread = False if distance == 0 else True
-
+        
 
     def block_design(self):
         if self.block_type == "random":
-            temp = [random.randint(1,6) for _ in range(9)]
+            temp = [random.randint(1,6) for _ in range((self.num_blocks * self.num_blocks))]
             design = []
-            for i in range(0, len(temp), 3):
-                design.append(temp[i: i + 3])
+            for i in range(0, len(temp), self.num_blocks):
+                design.append(temp[i: i + self.num_blocks])
         elif self.block_type == "fixed":
-            design = [[5,5,5],[2,2,2],[6,6,6]] # used for testing
-            # pattern is manually specified during initialiation by passing a matrix into the pat var
+            # for testing only
+            design = [[5,5,5],[2,2,2],[6,6,6]] if self.num_blocks == 3 else [[5,5,5,5],[2,2,2,2],[6,6,6,6]]
+            # a fixed pattern is specified during initialiation by passing a matrix into the pat var
         return design
 
     
@@ -251,8 +219,9 @@ class KohGrid:
 
 class KohStimuli():
     
-    def __init__(self, condition: str):
+    def __init__(self, condition: str, grid_size = 3):
         self.condition = condition
+        self.grid_size = grid_size
         self._stimuli = {
             "test": None,
             "target": None,
@@ -292,14 +261,14 @@ class KohStimuli():
         else:
             pattern = None
         # calls the KohGrid class to create a Koh pattern
-        stimulus = KohGrid(position, scale, win, block_type, pattern, line_color)
+        stimulus = KohGrid(position, scale, win, block_type, pattern, line_color, num_blocks = self.grid_size)
         # before adding the distractor to the overall display, first check to ensure it is different
         if "distractor" in name:
             while True:
                 if stimulus.pattern not in [self._stimuli["test"].pattern, self._stimuli["target"].pattern]:
                     break 
                 else:
-                    stimulus = KohGrid(position, scale, win, block_type, pattern, line_color)
+                    stimulus = KohGrid(position, scale, win, block_type, pattern, line_color, num_blocks = self.grid_size)
         # add the stimulus to the dict holding the 4 on-screen stimuli
         self._stimuli[name] = stimulus
 
@@ -374,10 +343,11 @@ class KohStimuli():
     
 class KohExperiment():
     
-    def __init__(self, deg: int, condition: str, window: visual.Window, trial_type: str):
+    def __init__(self, deg: int, condition: str, window: visual.Window, trial_type: str, grid_size = 3):
         self.__condition = condition
         self.__window = window
         self.__trial_type = trial_type
+        self.__grid_size = grid_size
         self.__deg = deg
         self.__set_scale()
         self.__add_koh_trials()
@@ -457,7 +427,7 @@ class KohExperiment():
         index = 0
         for trial in self.generate_trial_list():
             index += 1
-            screen = KohStimuli(self.__condition)
+            screen = KohStimuli(self.__condition, self.__grid_size)
             screen.load_stimulus_conditions(trial, self.__window)
 
             if trial[0]["style"] == "spread":
@@ -646,12 +616,30 @@ if __name__ in "__main__":
     condition = "test"
     subj_id = "0001"
 
-    test = KohExperiment(1.5, condition, win)
+    #test = KohExperiment(1.5, condition, win)
 
-    for key, value in test.items():
-        for x, y in value.items():
-            y.display_grid()
+    #for key, value in test.items():
+        #for x, y in value.items():
+            #y.display_grid()
         
 
-        event.waitKeys()
- 
+        #event.waitKeys()
+    
+    test = KohGrid((0,0, 1),50, win, block_type="random", num_blocks=4)
+    test.spread_blocks(25)
+    test.display_grid()
+    win.flip()
+    event.waitKeys()
+
+    """n = 4
+    x_pos = list(map(lambda x: x + 0.5, range(-int(n/2), int(n/2), 1)))
+    y_pos = list(map(lambda x: x - 0.5, range(int(n/2), -int(n/2), -1)))
+    test = [[(x, y) for x in x_pos] for y in y_pos]
+    print(test)"""
+
+    """n = 1
+    x_pos = list(map(lambda x: x, range(-int((n-1)/2), int((n-1)/2+1), 1)))
+    y_pos = list(map(lambda x: x, range(int((n-1)/2), -int((n-1)/2+1), -1)))
+
+    positions = [[(x, y) for x in x_pos] for y in y_pos]
+    print(positions)"""

@@ -11,6 +11,7 @@ import sys, math, time
 if True:
     subj_id = "0001"
     condition = "test"
+    vis_acuity = "0.05"
     win = visual.Window(
         monitor="hp_home_main",
         fullscr=True,
@@ -22,8 +23,9 @@ if True:
     data_path = f"KohBlocks_{subj_id}_test.csv"
 else:
     # setup a gui interface to specify experiment parameters
-    exp_param = gui.Dlg()
+    exp_param = gui.Dlg(title = "Experiment Information")
     exp_param.addField("id: ")
+    exp_param.addField("LogMAR: ")
     exp_param.addField("condition: ", choices=["near", "far"])
 
     # log and display the gui for user input
@@ -31,6 +33,7 @@ else:
 
     # assign subject id variable and condition number based on gui input
     subj_id = param_data["id: "]
+    vis_acuity = param_data["LogMAR: "]
     condition = param_data["condition: "]
     data_path = f"KohBlocks_{subj_id}.csv"
 
@@ -214,6 +217,7 @@ exp_data = ExperimentData(data_path)
 
 exp_data.load_data_header(
     "Subject ID",
+    "visual acuity",
     "Condition",
     "Trial Number",
     "Target Position",
@@ -230,7 +234,7 @@ exp_data.check_for_existing_data()
 
 # class object that loads the experimetn and corresponding conditions
 # number is the size in degrees
-main_experiment = KohExperiment(1.5, condition, win, "experiment")
+main_experiment = KohExperiment(1.5, condition, win, "experiment", 3)
 
 for key, value in main_experiment.items():
     # add the used test pattern to the log and return the int key value for that pattern in the log
@@ -256,6 +260,7 @@ for key, value in main_experiment.items():
     # log trial data using the ExperimentData object
     exp_data.add_trial_data(
         subj_id, # subject ID
+        vis_acuity, # LogMar score
         condition, # record the condition
         int(key.split()[1]), # Counter for the Trial Number
         value._stimuli["target"].log_position(), # int 1-3 defining target position 1: left, 2: center, 3: right
