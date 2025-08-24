@@ -3,8 +3,8 @@
 # Psychopy version: 2024.2.1post4
 # Python version: 3.10.11
 
-from psychopy import visual, event, gui, clock
-from KohBlocks import KohExperiment, KohPatternLogs, ExperimentData
+from psychopy import visual, event, gui
+from KohBlocks import KohExperiment, KohPatternLogs, ExperimentData, MouseResponse
 import sys, math, time
 
 # if/else block to simplify testing/development by hardcoding experiment parameters
@@ -80,74 +80,6 @@ def visual_angle(deg, cond = condition):
     pix = (2 * distance) * math.tan((deg * (math.pi/180))/2) * pix_mm
     return round(pix)
 
-##############################################
-###### set up data collection via mouse ######
-##############################################
-
-response_box_1 = visual.Rect(
-    win = win,
-    units = "pix",
-    size = visual_angle(3.1),
-    fillColor = [1] * 3,
-    opacity = 0.0,
-    pos = (-visual_angle(4.0), -visual_angle(2.0))
-)
-
-response_box_2 = visual.Rect(
-    win = win,
-    units = "pix",
-    size = visual_angle(3.1),
-    fillColor = [1] * 3,
-    opacity = 0.0,
-    pos = (0, -visual_angle(2.0))
-)
-
-response_box_3 = visual.Rect(
-    win = win,
-    units = "pix",
-    size = visual_angle(3.1),
-    fillColor = [1] * 3,
-    opacity = 0.0,
-    pos = (visual_angle(4.0), -visual_angle(2.0))
-)
-
-response_box_0 = visual.Rect(
-    win = win,
-    units = "pix",
-    size = visual_angle(3.1),
-    fillColor = [1] * 3,
-    opacity = 0.0,
-    pos = (0, visual_angle(2.0))
-)
-
-response_boxes = [response_box_0, response_box_1, response_box_2, response_box_3]
-
-mouse = event.Mouse(
-    win = win,
-    visible = True,   
-)
-mouse.clickableStim = response_boxes
-
-def collect_mouse_response(locations = response_boxes):
-    for box in locations:
-        box.draw()
-    win.flip()
-    clicked = False
-    start_time = clock.getTime()
-    while not clicked:
-        # check the list of shapes
-        for n, box in enumerate(locations):
-            if mouse.isPressedIn(box):
-                clicked = True
-                response = n 
-                end_time = clock.getTime()
-                break # exit this loop
-            else: # this runs once at the completion of the for loop
-            # breathe for 1 ms
-                time.sleep(0.001)
-    rt = round((end_time - start_time) * 1000)
-    return (response, rt)
-
 
 ##########################
 ###### Instructions ######
@@ -178,12 +110,13 @@ instructions.draw()
 win.flip()
 event.waitKeys()
 
-practice_trials = KohExperiment(1.5, condition, win, "practice")
+practice_trials = KohExperiment(1.5, condition, win, "practice", 3)
+practice_responses = MouseResponse(1.5, condition, win, 3)
 for key, value in practice_trials.items():
     for practice_n, trial_n in value.items():
         trial_n.display_grid()
     # not assigned to a variable because not logging the data
-    collect_mouse_response()
+    practice_responses.collect_mouse_response()
 
 instructions.text = """
 Do you have any questions before we continue? \n
@@ -235,6 +168,7 @@ exp_data.check_for_existing_data()
 # class object that loads the experimetn and corresponding conditions
 # number is the size in degrees
 main_experiment = KohExperiment(1.5, condition, win, "experiment", 3)
+main_exp_responses = MouseResponse(1.5, condition, win, 3)
 
 for key, value in main_experiment.items():
     # add the used test pattern to the log and return the int key value for that pattern in the log
@@ -246,7 +180,7 @@ for key, value in main_experiment.items():
         y.display_grid()
     
     # call exp function to collect a mouse response.  returns int (1-3) for object selected and trial rt
-    response = collect_mouse_response()
+    response = main_exp_responses.collect_mouse_response()
     
     # variable to identify correct response.  If it is a catch trial, the correct response is 0
     # if it is a "target" trial then the correct response is the logged target location.
