@@ -5,7 +5,7 @@
 
 from psychopy import visual, event, gui
 from KohBlocks import KohExperiment, KohPatternLogs, ExperimentData, MouseResponse
-import sys, math, time
+import sys, math
 
 # if/else block to simplify testing/development by hardcoding experiment parameters
 if True:
