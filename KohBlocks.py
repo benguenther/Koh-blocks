@@ -726,34 +726,6 @@ if __name__ in "__main__":
     condition = "test"
     subj_id = "0001"
 
-    #test = KohExperiment(1.5, condition, win)
-
-    #for key, value in test.items():
-        #for x, y in value.items():
-            #y.display_grid()
-        
-
-        #event.waitKeys()
-    
-    """test = KohGrid((0,0, 1),50, win, block_type="random", num_blocks=4)
-    test.spread_blocks(25)
-    test.display_grid()
-    win.flip()
-    event.waitKeys()"""
-
-    """n = 4
-    x_pos = list(map(lambda x: x + 0.5, range(-int(n/2), int(n/2), 1)))
-    y_pos = list(map(lambda x: x - 0.5, range(int(n/2), -int(n/2), -1)))
-    test = [[(x, y) for x in x_pos] for y in y_pos]
-    print(test)"""
-
-    """n = 1
-    x_pos = list(map(lambda x: x, range(-int((n-1)/2), int((n-1)/2+1), 1)))
-    y_pos = list(map(lambda x: x, range(int((n-1)/2), -int((n-1)/2+1), -1)))
-
-    positions = [[(x, y) for x in x_pos] for y in y_pos]
-    print(positions)"""
-
     practice_trials = KohExperiment(1.5, condition, win, "practice", 3)
     responses = MouseResponse(1.5, condition, win, 3)
     for key, value in practice_trials.items():
