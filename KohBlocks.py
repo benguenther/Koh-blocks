@@ -3,8 +3,8 @@
 # Psychopy version: 2024.2.1post4
 # Python version: 3.10.11
 
-from psychopy import visual
-import random, math, csv, os
+from psychopy import visual, clock, event
+import random, math, csv, os, time
 import numpy as np
 
 class KohBlock:
@@ -79,10 +79,11 @@ class KohBlock:
 
 class KohGrid:
     
-    def __init__(self, position: tuple, scale: int,  win, block_type = "", pat = None, line_color = "black"):#spread: int, 
+    def __init__(self, position: tuple, scale: int,  win, block_type = "", pat = None, line_color = "black", num_blocks = 3):#spread: int, 
         self.h_center = position[0]#h_center
         self.v_center = position[1]#v_center
         self.pos_number = position[2]
+        self.num_blocks = num_blocks
         self.scale = scale
         self.block_type = block_type # specifies if blocks are random or fixed
         self.win = win
@@ -99,79 +100,46 @@ class KohGrid:
         self.original_pattern = self.pattern # save original pattern
 
 
-    def position_grid(self):
-        self.positions = [
-            [
-                [(self.h_center - self.scale), (self.v_center + self.scale)], # cube 1
-                [(self.h_center),(self.v_center + self.scale)], # cube 2
-                [(self.h_center + self.scale),(self.v_center + self.scale)]
-                ], # cube 3
-            [
-                [(self.h_center - self.scale),(self.v_center)], # cube 4
-                [(self.h_center),(self.v_center)], # cube 5
-                [(self.h_center + self.scale),(self.v_center)]
-                ], # cube 6
-            [
-                [(self.h_center - self.scale),(self.v_center - self.scale)], # cube 7
-                [(self.h_center),(self.v_center - self.scale)], # cube 8
-                [(self.h_center + self.scale),(self.v_center - self.scale)] # cube 9
-                ]
-        ]
-        return self.positions
+    def x_positions(self):
+        # returns a list of x coordinate modifiers for individual block placement.
+        # with 0,0 being the center of the grid, it's defines the center of each block in overall block units
+        # a 3x3 grid would be [-1,0,1]
+        # a 4x4 grid would be [-1.5, -0.5, 0.5, 1.5]
+        if self.num_blocks % 2 != 0:
+            return list(map(lambda x: x, range(-int((self.num_blocks-1)/2), int((self.num_blocks-1)/2+1), 1)))
+        elif self.num_blocks % 2 == 0:
+           return list(map(lambda x: x + 0.5, range(-int(self.num_blocks/2), int(self.num_blocks/2), 1)))
+        
     
+    def y_positions(self):
+        # returns list of y coordintate modifiers in the same manner as the x_positions() method
+        # list starts with positive values (top of grid) instead of negative as in x_positions() (left of grid)
+        if self.num_blocks % 2 != 0:
+            return list(map(lambda x: x, range(int((self.num_blocks-1)/2), -int((self.num_blocks-1)/2+1), -1)))
+        elif self.num_blocks % 2 == 0:
+            return list(map(lambda x: x - 0.5, range(int(self.num_blocks/2), -int(self.num_blocks/2), -1)))
 
-    def move_position_grid(self, new_h, new_v):
-        self.positions = [
-            [
-                [(new_h - self.scale), (new_v + self.scale)], # cube 1
-                [(new_h),(new_v + self.scale)], # cube 2
-                [(new_h + self.scale),(new_v + self.scale)]
-                ], # cube 3
-            [
-                [(new_h - self.scale),(new_v)], # cube 4
-                [(new_h),(new_v)], # cube 5
-                [(new_h + self.scale),(new_v)]
-                ], # cube 6
-            [
-                [(new_h - self.scale),(new_v - self.scale)], # cube 7
-                [(new_h),(new_v - self.scale)], # cube 8
-                [(new_h + self.scale),(new_v - self.scale)] # cube 9
-                ]
-        ]
+
+    def position_grid(self):
+        return [[(self.h_center + x * self.scale, self.v_center + y * self.scale) for x in self.x_positions()] for y in self.y_positions()]
 
 
     def spread_blocks(self, distance):
-        spreader = [
-            [
-                [(-distance), (distance)], # cube 1
-                [(0), (distance)], # cube 2
-                [(distance), (distance)]
-                ], # cube 3
-            [
-                [(-distance), (0)], # cube 4
-                [(0), (0)], # cube 5
-                [(distance), (0)]
-            ], # cube 6
-            [
-                [(-distance), (-distance)], # cube 7
-                [(-0), (-distance)], # cube 8
-                [(distance), (-distance)]
-            ], # cube 9
-        ]   
-        self.positions = np.add(self.positions, spreader)
+        spreader = [[(x * distance, y * distance) for x in self.x_positions()] for y in self.y_positions()]
+        self.positions = np.add(self.positions, spreader)    
+        self.__spread = False if distance == 0 else True # for data logging purposes
         
-        self.__spread = False if distance == 0 else True
-
 
     def block_design(self):
         if self.block_type == "random":
-            temp = [random.randint(1,6) for _ in range(9)]
+            temp = [random.randint(1,6) for _ in range((self.num_blocks * self.num_blocks))]
             design = []
-            for i in range(0, len(temp), 3):
-                design.append(temp[i: i + 3])
+            for i in range(0, len(temp), self.num_blocks):
+                design.append(temp[i: i + self.num_blocks])
         elif self.block_type == "fixed":
-            design = [[5,5,5],[2,2,2],[6,6,6]] # used for testing
-            # pattern is manually specified during initialiation by passing a matrix into the pat var
+            # for testing only
+            design = [[5,5,5],[2,2,2],[6,6,6]] if self.num_blocks == 3 else [[5,5,5,5],[2,2,2,2],[6,6,6,6]]
+            # a fixed pattern is specified during initialiation by passing a matrix into the pat var
         return design
 
     
@@ -251,8 +219,9 @@ class KohGrid:
 
 class KohStimuli():
     
-    def __init__(self, condition: str):
+    def __init__(self, condition: str, grid_size = 3):
         self.condition = condition
+        self.grid_size = grid_size
         self._stimuli = {
             "test": None,
             "target": None,
@@ -262,20 +231,33 @@ class KohStimuli():
 
 
     # method to convert a int id for locations into a tuple of x, y coordinates
-    def __set_positions(self, location: int):
-        if location == 0: # the test location at 0, 0
-            return 0, self.set_visual_angle(2.0), 0 # (0, 150)
-        if location == 1:
-            return -self.set_visual_angle(4.0), -self.set_visual_angle(2.0), 1 # (-300, -150)
-        if location == 2:
-            return 0, -self.set_visual_angle(2.0), 2 # (0, -150)
-        if location == 3:
-            return self.set_visual_angle(4.0), -self.set_visual_angle(2.0), 3 #(300, -150)
+    def __set_positions(self, location: int, scale_param: int):
+        if False:
+            if location == 0: # the test location at 0, 0
+                return 0, self.set_visual_angle(2.0), 0 # (0, 150)
+            if location == 1:
+                return -self.set_visual_angle(4.0), -self.set_visual_angle(2.0), 1 # (-300, -150)
+            if location == 2:
+                return 0, -self.set_visual_angle(2.0), 2 # (0, -150)
+            if location == 3:
+                return self.set_visual_angle(4.0), -self.set_visual_angle(2.0), 3 #(300, -150)
+        else:
+            # calculate relative positions:
+            # scale 2.0 is scale * 1.34 -- try scale * nblocks/2 * 1.125
+            # scale 4.0 is scale * 2.67
+            if location == 0: # the test location at 0, 0
+                return 0, (scale_param * (self.grid_size/2)* 1.5), 0 # (0, 150)
+            if location == 1:
+                return -(scale_param * (self.grid_size/2)* 3), -(scale_param * (self.grid_size/2)* 1.5), 1 # (-300, -150)
+            if location == 2:
+                return 0, -(scale_param * (self.grid_size/2)* 1.5), 2 # (0, -150)
+            if location == 3:
+                return (scale_param * (self.grid_size/2)* 3), -(scale_param * (self.grid_size/2)* 1.5), 3 #(300, -150)
 
 
     def add_stimulus(self, name: str, location: int, scale: int,  win, block_type, line_color):
         # method returns a tuple with x, y coords for the koh grid based on a number for each location
-        position = self.__set_positions(location)
+        position = self.__set_positions(location, scale)
         # target reads the test pattern from the stimulus list
         # TODO define stimulus list for test pattern 
         if name == "test":
@@ -292,14 +274,14 @@ class KohStimuli():
         else:
             pattern = None
         # calls the KohGrid class to create a Koh pattern
-        stimulus = KohGrid(position, scale, win, block_type, pattern, line_color)
+        stimulus = KohGrid(position, scale, win, block_type, pattern, line_color, num_blocks = self.grid_size)
         # before adding the distractor to the overall display, first check to ensure it is different
         if "distractor" in name:
             while True:
                 if stimulus.pattern not in [self._stimuli["test"].pattern, self._stimuli["target"].pattern]:
                     break 
                 else:
-                    stimulus = KohGrid(position, scale, win, block_type, pattern, line_color)
+                    stimulus = KohGrid(position, scale, win, block_type, pattern, line_color, num_blocks = self.grid_size)
         # add the stimulus to the dict holding the 4 on-screen stimuli
         self._stimuli[name] = stimulus
 
@@ -338,8 +320,8 @@ class KohStimuli():
         pix_mm = (screen_pix[0]/screen_mm[0])
         pix = (2 * distance) * math.tan((deg * (math.pi/180))/2) * pix_mm
         return round(pix)
-
-
+    
+    
     def __iter__(self):
         return iter(self._stimuli.keys())
     
@@ -374,10 +356,11 @@ class KohStimuli():
     
 class KohExperiment():
     
-    def __init__(self, deg: int, condition: str, window: visual.Window, trial_type: str):
+    def __init__(self, deg: int, condition: str, window: visual.Window, trial_type: str, grid_size = 3):
         self.__condition = condition
         self.__window = window
         self.__trial_type = trial_type
+        self.__grid_size = grid_size
         self.__deg = deg
         self.__set_scale()
         self.__add_koh_trials()
@@ -457,7 +440,7 @@ class KohExperiment():
         index = 0
         for trial in self.generate_trial_list():
             index += 1
-            screen = KohStimuli(self.__condition)
+            screen = KohStimuli(self.__condition, self.__grid_size)
             screen.load_stimulus_conditions(trial, self.__window)
 
             if trial[0]["style"] == "spread":
@@ -496,7 +479,7 @@ class KohExperiment():
         # returns the number of pixels producing an object of the entered visual angle
         self.__scale = round(pix)
 
-
+    
     def __iter__(self):
         return iter(self.__trials.keys())
     
@@ -631,6 +614,103 @@ class ExperimentData:
             raise StopIteration
 
 
+class MouseResponse:
+    def __init__(self, stim_size: int, condition: str, window: visual.Window, grid_size):
+        self.__stim_size = stim_size
+        self.__condition = condition
+        self.__set_scale()
+        self.__grid_size = grid_size
+        self.win = window
+        
+
+    def __set_scale(self):
+        if self.__condition == "test":
+            screen_pix = [1920, 1080]
+            screen_mm = [529, 297]
+            distance = 610
+        elif self.__condition == "far":
+            screen_pix = [3840, 2160]
+            screen_mm = [1805, 1015]
+            distance = 5385
+        elif self.__condition == "near":
+            screen_pix = [3840, 2160]
+            screen_mm = [597, 335] 
+            distance = 400  
+        # assumes pixels are squaare
+        pix_mm = (screen_pix[0]/screen_mm[0])
+        pix = (2 * distance) * math.tan((self.__stim_size * (math.pi/180))/2) * pix_mm
+        # returns the number of pixels producing an object of the entered visual angle
+        self.__scale = round(pix)
+
+
+    def create_response_boxes(self):
+        self.response_box_1 = visual.Rect(
+            win = self.win,
+            units = "pix",
+            size = (self.__scale * (self.__grid_size/2)* 2.25),
+            fillColor = [1] * 3,
+            opacity = 0.0,
+            pos = (-(self.__scale * (self.__grid_size/2)* 3), -(self.__scale * (self.__grid_size/2)* 1.5))
+        )
+
+        self.response_box_2 = visual.Rect(
+            win = self.win,
+            units = "pix",
+            size = (self.__scale * (self.__grid_size/2)* 2.25),
+            fillColor = [1] * 3,
+            opacity = 0.0,
+            pos = (0, -(self.__scale * (self.__grid_size/2)* 1.5))
+        )
+
+        self.response_box_3 = visual.Rect(
+            win = self.win,
+            units = "pix",
+            size = (self.__scale * (self.__grid_size/2)* 2.25),
+            fillColor = [1] * 3,
+            opacity = 0.0,
+            pos = ((self.__scale * (self.__grid_size/2)* 3), -(self.__scale * (self.__grid_size/2)* 1.5))
+        )
+
+        self.response_box_0 = visual.Rect(
+            win = self.win,
+            units = "pix",
+            size = (self.__scale * (self.__grid_size/2)* 2.25),
+            fillColor = [1] * 3,
+            opacity = 0.0,
+            pos = (0, (self.__scale * (self.__grid_size/2)* 1.5))
+        )
+
+        self.response_boxes = [self.response_box_0, self.response_box_1, self.response_box_2, self.response_box_3]
+
+        self.mouse = event.Mouse(
+            win = self.win,
+            visible = True,   
+        )
+        self.mouse.clickableStim = self.response_boxes
+
+
+    def collect_mouse_response(self):
+        self.create_response_boxes()
+        for box in self.response_boxes:
+            box.draw()
+        self.win.flip()
+        clicked = False
+        start_time = clock.getTime()
+        while not clicked:
+            # check the list of shapes
+            for n, box in enumerate(self.response_boxes):
+                if self.mouse.isPressedIn(box):
+                    clicked = True
+                    response = n 
+                    end_time = clock.getTime()
+                    break # exit this loop
+                else: # this runs once at the completion of the for loop
+                # breathe for 1 ms
+                    time.sleep(0.001)
+        rt = round((end_time - start_time) * 1000)
+        return (response, rt)
+    
+
 if __name__ in "__main__":
     from psychopy import event
     
@@ -646,12 +726,11 @@ if __name__ in "__main__":
     condition = "test"
     subj_id = "0001"
 
-    test = KohExperiment(1.5, condition, win)
+    practice_trials = KohExperiment(1.5, condition, win, "practice", 3)
+    responses = MouseResponse(1.5, condition, win, 3)
+    for key, value in practice_trials.items():
+        for practice_n, trial_n in value.items():
+            trial_n.display_grid()
 
-    for key, value in test.items():
-        for x, y in value.items():
-            y.display_grid()
-        
+        print(responses.collect_mouse_response())
 
-        event.waitKeys()
- 
