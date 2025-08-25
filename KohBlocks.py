@@ -217,7 +217,7 @@ class KohGrid:
         return True if self.line_color else False
     
 
-class KohStimuli():
+class KohStimuli:
     
     def __init__(self, condition: str, grid_size = 3):
         self.condition = condition
@@ -354,7 +354,7 @@ class KohStimuli():
         return self.trial_type
     
     
-class KohExperiment():
+class KohExperiment:
     
     def __init__(self, deg: int, condition: str, window: visual.Window, trial_type: str, grid_size = 3):
         self.__condition = condition
