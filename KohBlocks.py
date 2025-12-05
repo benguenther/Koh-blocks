@@ -444,7 +444,8 @@ class KohExperiment:
             screen.load_stimulus_conditions(trial, self.__window)
 
             if trial[0]["style"] == "spread":
-                spread_value = 10
+                #spread_value = 10
+                spread_value = screen.set_visual_angle(0.2)
             else:
                 spread_value = 0
             
@@ -726,8 +727,8 @@ if __name__ in "__main__":
     condition = "test"
     subj_id = "0001"
 
-    practice_trials = KohExperiment(1.5, condition, win, "practice", 3)
-    responses = MouseResponse(1.5, condition, win, 3)
+    practice_trials = KohExperiment(1.25, condition, win, "practice", 3)
+    responses = MouseResponse(1.25, condition, win, 3)
     for key, value in practice_trials.items():
         for practice_n, trial_n in value.items():
             trial_n.display_grid()

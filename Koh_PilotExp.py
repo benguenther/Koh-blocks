@@ -8,7 +8,7 @@ from KohBlocks import KohExperiment, KohPatternLogs, ExperimentData, MouseRespon
 import sys, math
 
 # if/else block to simplify testing/development by hardcoding experiment parameters
-if True:
+if False:
     subj_id = "0001"
     condition = "test"
     vis_acuity = "0.05"
@@ -44,7 +44,7 @@ else:
             fullscr=True,
             size=[3840, 2160],
             screen=1,
-            color=[+1] * 3,
+            color=[.5] * 3,
             units="pix"
         )
     elif condition == "far":
@@ -110,8 +110,8 @@ instructions.draw()
 win.flip()
 event.waitKeys()
 
-practice_trials = KohExperiment(1.5, condition, win, "practice", 3)
-practice_responses = MouseResponse(1.5, condition, win, 3)
+practice_trials = KohExperiment(1.25, condition, win, "practice", 3)
+practice_responses = MouseResponse(1.25, condition, win, 3)
 for key, value in practice_trials.items():
     for practice_n, trial_n in value.items():
         trial_n.display_grid()
@@ -167,8 +167,8 @@ exp_data.check_for_existing_data()
 
 # class object that loads the experimetn and corresponding conditions
 # number is the size in degrees
-main_experiment = KohExperiment(1.5, condition, win, "experiment", 3)
-main_exp_responses = MouseResponse(1.5, condition, win, 3)
+main_experiment = KohExperiment(1.25, condition, win, "experiment", 3)
+main_exp_responses = MouseResponse(1.25, condition, win, 3)
 
 for key, value in main_experiment.items():
     # add the used test pattern to the log and return the int key value for that pattern in the log
@@ -207,6 +207,7 @@ for key, value in main_experiment.items():
         response[1], #rt", 
         test_pattern # number (key) linking to a dict of the specific pattern used
         ) 
+
 
 instructions.text = f"""
 The {condition} condtion has successfully been completed.
