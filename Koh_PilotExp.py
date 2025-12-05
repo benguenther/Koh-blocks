@@ -5,11 +5,12 @@
 
 from psychopy import visual, event, gui
 from KohBlocks import KohExperiment, KohPatternLogs, ExperimentData, MouseResponse
+from Survey.survey_data import SurveyData
 import sys, math
 
 # if/else block to simplify testing/development by hardcoding experiment parameters
-if False:
-    subj_id = "0001"
+if True:
+    subj_id = "99999"
     condition = "test"
     vis_acuity = "0.05"
     win = visual.Window(
@@ -24,8 +25,8 @@ if False:
 else:
     # setup a gui interface to specify experiment parameters
     exp_param = gui.Dlg(title = "Experiment Information")
-    exp_param.addField("id: ")
-    exp_param.addField("LogMAR: ")
+    exp_param.addField("id: ", "id:")
+    exp_param.addField("LogMAR: ", "LogMAR")
     exp_param.addField("condition: ", choices=["near", "far"])
 
     # log and display the gui for user input
@@ -110,9 +111,15 @@ instructions.draw()
 win.flip()
 event.waitKeys()
 
+instructions.text = "+"
+
 practice_trials = KohExperiment(1.25, condition, win, "practice", 3)
 practice_responses = MouseResponse(1.25, condition, win, 3)
 for key, value in practice_trials.items():
+    instructions.draw()
+    win.flip()
+    event.waitKeys()
+
     for practice_n, trial_n in value.items():
         trial_n.display_grid()
     # not assigned to a variable because not logging the data
@@ -161,16 +168,32 @@ exp_data.load_data_header(
     "Response",
     "Response Accuracy",
     "RT",
-    "KohPattern Number"
+    "KohPattern Number",
+    # survey variables
+    "sex", 
+    "gender",
+    "age",
+    "english", # is enlish your first language
+    "self_handedness",
+    "survey_handedness"
 )
 exp_data.check_for_existing_data()
+
+# load survey data
+survey = SurveyData(subj_id)
 
 # class object that loads the experimetn and corresponding conditions
 # number is the size in degrees
 main_experiment = KohExperiment(1.25, condition, win, "experiment", 3)
 main_exp_responses = MouseResponse(1.25, condition, win, 3)
 
+instructions.text = "+"
+
 for key, value in main_experiment.items():
+    instructions.draw()
+    win.flip()
+    event.waitKeys()
+
     # add the used test pattern to the log and return the int key value for that pattern in the log
     test_pattern = koh_block_patterns.add_pattern_to_log(value._stimuli["test"])
 
@@ -205,8 +228,15 @@ for key, value in main_experiment.items():
         response[0], #response",
         resp_acc, #accuracy"
         response[1], #rt", 
-        test_pattern # number (key) linking to a dict of the specific pattern used
-        ) 
+        test_pattern, # number (key) linking to a dict of the specific pattern used
+        # survey variables
+        survey.data["sex"], # sex assigned at birth
+        survey.data["gen"], # self report gender
+        survey.data["age"], # age
+        survey.data["english"], # Y/N if english is first language
+        survey.data["handedness"], # self report handedness R/L
+        survey.data["calc_hand"],  # handedness based on scale inventory
+        )
 
 
 instructions.text = f"""

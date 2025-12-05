@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    <h1>Research Survey Form</h1>
+    <!-- Create Form -->
+    <form id="form">
+
+        <!-- Details -->
+        <div class="form-control">
+            <h2>User info</h2>
+            <label for="code_num" id="label-code_num">Code Number</label>
+            <input type="text" id="code_num" placeholder="Enter your code number" />
+
+            <label for="date" id="label-date">Date</label>
+            <input type="date" id="date" placeholder="Enter the date" />
+
+            <label for="sex" id="label-sex">Sex assigned at birth</label>
+            <select name="sex" id="sex">
+                <option value="Prefer not to say">Prefer not to say</option>
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Intersex">Intersex</option>
+            </select>
+
+            <label for="gender" id="label-gender">Gender</label>
+            <input type="text" id="gender" placeholder="Enter your gender identity" />
+
+            <label for="age" id="label-age">Age</label>
+            <input type="number" id="age" placeholder="Enter your age" />
+
+            <label for="eng" id="label-eng">Is English your first language?</label>
+            <select name="eng" id="eng">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+
+            <label for="handedness" id="label-handedness">Indicate handedness</label>
+            <select name="handedness" id="handedness">
+                <option value="Right">Right</option>
+                <option value="Left">Left</option>
+            </select>
+        </div>
+
+
+        <div class="form-control">
+            <h2>Hand Preferance Info</h2>
+            <label for="role" id="label-role">To write A letter legibly</label>
+            <select name="role" id="q1">
+                <option value="-2">Always Left</option> 
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option> <!---->
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            <label for="role" id="label-role">To throw a ball to hit a target</label>
+            <select name="role" id="q2">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            <label for="role" id="label-role">To play a game requiring the use of a raquet</label>
+            <select name="role" id="q3">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            <label for="role" id="label-role">At the top of a broom to sweep dust from the floor</label>
+            <select name="role" id="q4">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            <label for="role" id="label-role">At the top of a shovel to move sand</label>
+            <select name="role" id="q5">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            <label for="role" id="label-role">To hold a match when striking it</label>
+            <select name="role" id="q6">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            <label for="role" id="label-role">To hold scissors to cut paper</label>
+            <select name="role" id="q7">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            <label for="role" id="label-role">To hold thread to guide through the eye of a needle</label>
+            <select name="role" id="q8">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            <label for="role" id="label-role">To deal playing cards</label>
+            <select name="role" id="q9">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            <label for="role" id="label-role">To hammer a nail into wood</label>
+            <select name="role" id="q10">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            <label for="role" id="label-role">To hold a toothbrush while cleaning teeth</label>
+            <select name="role" id="q11">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            <label for="role" id="label-role">To unscrew the lid of a jar</label>
+            <select name="role" id="q12">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+
+        </div>
+
+        <div class="form-control">
+            <h2>Other Info</h2>
+            <label for="role" id="label-role">Are either of your parents left-handed?</label>
+            <select name="role" id="parents_hand">
+                <option value="mother">Mother</option>
+                <option value="father">Father</option>
+                <option value="both">Both</option>
+                <option value="neither">Neither</option>
+                <option value="unknown" selected>Not sure</option>
+            </select>
+            
+            <label for="role" id="label-role">How many siblings of each sex do you have?</label>
+            <label for="role" id="label-role">Female</label>
+            <input type="number" id="sib_female" placeholder="Enter # of female siblings" />
+            <label for="role" id="label-role">Male</label>
+            <input type="number" id="sib_male" placeholder="Enter # of male siblings" />
+
+            <label for="role" id="label-role">How many of each sex are left-handed?</label>
+            <label for="role" id="label-role">Female</label>
+            <input type="number" id="female_l" placeholder="Enter # of left-handed females" />
+            <label for="role" id="label-role">Male</label>
+            <input type="number" id="male_l" placeholder="Enter # of left-handed males" />
+
+
+            <label for="role" id="label-role">Which eye do you use when using only one (e.g telescope, keyhole)?</label>
+            <select name="role" id="primary_eye">
+                <option value="-2">Always Left</option> <!---->
+                <option value="-1">Usually Left</option>
+                <option value="0" selected>No Preference</option>
+                <option value="1">Usually Right</option>
+                <option value="2">Always Right</option>
+            </select>
+            
+            
+            
+
+        </div>
+        <!-- Submit Button -->
+        <button type="submit" value="submit" id="submit">Submit</button>
+        <script src="script.js"></script>
+    </form>
+</body>
+</html>
