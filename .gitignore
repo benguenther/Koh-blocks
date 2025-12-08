@@ -4,3 +4,4 @@ __pycache__/
 !koh_master_data.csv
 !data.csv
 Survey/__pycache__/
+/Survey/__pycache__
