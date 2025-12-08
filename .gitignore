@@ -3,4 +3,4 @@ __pycache__/
 **/*.csv
 !koh_master_data.csv
 !data.csv
-survey/__pycache__/
+Survey/__pycache__/
