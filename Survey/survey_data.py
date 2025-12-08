@@ -20,7 +20,7 @@ class SurveyData:
 
     
     def proccess_gender_response(self):
-        if self.__data["gender"].isnull():
+        if not self.__data["gender"]: # .isnull()
             self.__data["gender"] = self.__data["sex"].str.lower()
         
         if self.__data["gender"].lower().strip() in ["man", "male", "boy", "guy"]:

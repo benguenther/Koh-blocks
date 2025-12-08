@@ -94,7 +94,7 @@ instructions = visual.TextStim(
     font = "courier new",
     color = [-1] * 3,
     units = "pix",
-    height = visual_angle(0.5),
+    height = visual_angle(0.75),
     wrapWidth = visual_angle(18)
 )
 
