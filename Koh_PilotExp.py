@@ -9,7 +9,7 @@ from Survey.survey_data import SurveyData
 import sys, math
 
 # if/else block to simplify testing/development by hardcoding experiment parameters
-if True:
+if False:
     subj_id = "99999"
     condition = "test"
     vis_acuity = "0.05"
