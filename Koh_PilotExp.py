@@ -26,7 +26,7 @@ else:
     # setup a gui interface to specify experiment parameters
     exp_param = gui.Dlg(title = "Experiment Information")
     exp_param.addField("id: ", "id:")
-    exp_param.addField("LogMAR: ", "LogMAR")
+    #exp_param.addField("LogMAR: ", "LogMAR")
     exp_param.addField("condition: ", choices=["near", "far"])
 
     # log and display the gui for user input
@@ -34,7 +34,7 @@ else:
 
     # assign subject id variable and condition number based on gui input
     subj_id = param_data["id: "]
-    vis_acuity = param_data["LogMAR: "]
+    #vis_acuity = param_data["LogMAR: "]
     condition = param_data["condition: "]
     data_path = f"KohBlocks_{subj_id}.csv"
 
@@ -157,7 +157,7 @@ exp_data = ExperimentData(data_path)
 
 exp_data.load_data_header(
     "Subject ID",
-    "visual acuity",
+    #"visual acuity",
     "Condition",
     "Trial Number",
     "Target Position",
@@ -218,7 +218,7 @@ for key, value in main_experiment.items():
     # log trial data using the ExperimentData object
     exp_data.add_trial_data(
         subj_id, # subject ID
-        vis_acuity, # LogMar score
+        #vis_acuity, # LogMar score
         condition, # record the condition
         int(key.split()[1]), # Counter for the Trial Number
         value._stimuli["target"].log_position(), # int 1-3 defining target position 1: left, 2: center, 3: right
