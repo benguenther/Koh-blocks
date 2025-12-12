@@ -1,4 +1,5 @@
 let code
+let LogMAR
 let date
 let sex
 let gender
@@ -23,6 +24,7 @@ let parents_hand, sib_female, sib_male, female_l, male_l, primary_eye;
 
 document.getElementById("submit").onclick = function(){
     code = document.getElementById("code_num").value;
+    LogMAR = document.getElementById("LogMAR").value;
     date = document.getElementById("date").value;
     sex = document.getElementById("sex").value;
     gender = document.getElementById("gender").value;
@@ -51,8 +53,8 @@ document.getElementById("submit").onclick = function(){
     primary_eye = document.getElementById("primary_eye").value;
 
     const rows = [
-        ["code", "date", "sex", "gender", "age", "english", "handedness", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "parents_hand", "sib_female", "sib_male", "female_l", "male_l", "primary_eye"],
-        [code, date, sex, gender, age, english, handedness, q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12, parents_hand, sib_female, sib_male, female_l, male_l, primary_eye]   
+        ["code", "LogMAR", "date", "sex", "gender", "age", "english", "handedness", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "parents_hand", "sib_female", "sib_male", "female_l", "male_l", "primary_eye"],
+        [code, LogMAR, date, sex, gender, age, english, handedness, q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12, parents_hand, sib_female, sib_male, female_l, male_l, primary_eye]   
     ];
 
     let filename = "info_"+code;

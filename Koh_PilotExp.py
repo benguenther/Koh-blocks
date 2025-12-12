@@ -175,7 +175,8 @@ exp_data.load_data_header(
     "age",
     "english", # is enlish your first language
     "self_handedness",
-    "survey_handedness"
+    "survey_handedness",
+    "survey_LogMAR"
 )
 exp_data.check_for_existing_data()
 
@@ -236,6 +237,7 @@ for key, value in main_experiment.items():
         survey.data["english"], # Y/N if english is first language
         survey.data["handedness"], # self report handedness R/L
         survey.data["calc_hand"],  # handedness based on scale inventory
+        survey.data["LogMAR"]
         )
 
 
