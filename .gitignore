@@ -7,3 +7,4 @@ Survey/__pycache__/
 /Survey/__pycache__
 .vscode/**/*
 data/
+**/.DS_Store
