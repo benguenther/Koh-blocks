@@ -2,17 +2,17 @@ Men
 11235 - Near first - complete
 13458 - Far first - complete
 14857 - Near first - complete (acuity may be too low)
-19257 - Far first - 
-25482 - Near first - 
-26721 - Far first - 
-26433 - Near first - 
-26642 - Far first - 
-96547 - Near first - 
-52134 - Far first - 
+19257 - Far first - Complete (experiment would not run in near spce)
+26433 - Near first - complete
+26642 - Far first - complete
+96547 - Near first - complete
+52134 - Far first - complete
+32548 - Near first - complete
+34682 - Far first - 
 
 Women
-32548 - Near first - 
-34682 - Far first - 
+25482 - Near first - complete       
+26721 - Far first - complete
 38249 - Near first - 
 34412 - Far first - 
 39986 - Near first - 
@@ -24,3 +24,5 @@ Women
 
 
 99998 - near first - -0.17
+99997 - near first - -.2
+99996 - far first - -.4   
