@@ -375,7 +375,7 @@ class KohExperiment:
         if self.__trial_type == "experiment":
             for s in style:
                 for o in outline:
-                    for p in position * 2:
+                    for p in position * 3:
                         condition_list.append((s,o,p, "target"))
                     condition_list.append((s,o,p, "catch"))
         elif self.__trial_type == "practice":

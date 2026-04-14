@@ -1,26 +1,25 @@
 Men
-11235 - Near first - complete
-13458 - Far first - complete
-14857 - Near first - complete (acuity may be too low)
-19257 - Far first - 
-25482 - Near first - 
-26721 - Far first - 
-26433 - Near first - 
-26642 - Far first - 
-96547 - Near first - 
-52134 - Far first - 
+1235 - Near first - 
+3458 - Far first - 
+4857 - Near first - 
+9257 - Far first - 
+5482 - Near first - 
+2671 - Far first - 
+2633 - Near first - 
+2642 - Far first - 
+6547 - Near first - 
+5234 - Far first - 
 
 Women
-32548 - Near first - 
-34682 - Far first - 
-38249 - Near first - 
-34412 - Far first - 
-39986 - Near first - 
-44452 - Far first - 
-46582 - Near first - 
-47132 - Far first - 
-48234 - Near first - 
-62374 - Far first - 
+3248 - Near first - 
+3682 - Far first - 
+3249 - Near first - 
+3442 - Far first - 
+3986 - Near first - 
+4452 - Far first - 
+6582 - Near first - 
+4732 - Far first - 
+4234 - Near first - 
+6234 - Far first - 
 
 
-99998 - near first - -0.17
